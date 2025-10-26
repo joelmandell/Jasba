@@ -1,0 +1,72 @@
+@page "/Inspector/Rounds"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "Inspector,TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+
+<PageTitle>Inspection Rounds - SBA Pro</PageTitle>
+
+<h3>Inspection Rounds</h3>
+
+<p>View and manage your inspection rounds.</p>
+
+@if (rounds != null)
+{
+    @if (rounds.Count == 0)
+    {
+        <div class="alert alert-info">
+            No inspection rounds found. Contact your administrator to set up sites and floor plans.
+        </div>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Site</th>
+                    <th>Started</th>
+                    <th>Completed</th>
+                    <th>Status</th>
+                    <th>Results</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var round in rounds)
+                {
+                    <tr>
+                        <td>@round.Site.Name</td>
+                        <td>@round.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(round.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td>@round.Status</td>
+                        <td>@round.InspectionResults.Count</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+else
+{
+    <p>Loading inspection rounds...</p>
+}
+
+@code {
+    private List<InspectionRound>? rounds;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRounds();
+    }
+
+    private async Task LoadRounds()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        rounds = await context.InspectionRounds
+            .Include(r => r.Site)
+            .Include(r => r.InspectionResults)
+            .OrderByDescending(r => r.StartedAt)
+            .ToListAsync();
+    }
+}

@@ -1,0 +1,147 @@
+@page "/Tenant/Sites/{SiteId:guid}/FloorPlans"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@using SBAPro.Core.Interfaces
+@using Microsoft.AspNetCore.Components.Forms
+@attribute [Authorize(Roles = "TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Floor Plans - SBA Pro</PageTitle>
+
+<h3>Floor Plans for @siteName</h3>
+
+<div class="mb-3">
+    <button class="btn btn-secondary" @onclick="GoBack">Back to Sites</button>
+    <button class="btn btn-primary" @onclick="ShowUploadForm">Upload Floor Plan</button>
+</div>
+
+@if (showUploadForm)
+{
+    <div class="card mb-3">
+        <div class="card-header">Upload Floor Plan</div>
+        <div class="card-body">
+            <EditForm Model="newFloorPlan" OnValidSubmit="UploadFloorPlan">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="newFloorPlan.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Floor Plan Image</label>
+                    <InputFile class="form-control" OnChange="HandleFileSelected" accept="image/*" />
+                    @if (!string.IsNullOrEmpty(uploadMessage))
+                    {
+                        <div class="text-info mt-2">@uploadMessage</div>
+                    }
+                </div>
+                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">Upload</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showUploadForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (floorPlans != null)
+{
+    <div class="row">
+        @foreach (var floorPlan in floorPlans)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>@floorPlan.Name</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Size:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
+                        <p><strong>Objects:</strong> @floorPlan.InspectionObjects.Count</p>
+                        <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">Manage Objects</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Loading floor plans...</p>
+}
+
+@code {
+    [Parameter]
+    public Guid SiteId { get; set; }
+
+    private List<FloorPlan>? floorPlans;
+    private string siteName = "";
+    private bool showUploadForm = false;
+    private FloorPlan newFloorPlan = new();
+    private IBrowserFile? uploadedFile;
+    private string uploadMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFloorPlans();
+    }
+
+    private async Task LoadFloorPlans()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var site = await context.Sites
+            .Include(s => s.FloorPlans)
+                .ThenInclude(fp => fp.InspectionObjects)
+            .FirstOrDefaultAsync(s => s.Id == SiteId);
+
+        if (site != null)
+        {
+            siteName = site.Name;
+            floorPlans = site.FloorPlans.ToList();
+        }
+    }
+
+    private void ShowUploadForm()
+    {
+        showUploadForm = true;
+        newFloorPlan = new FloorPlan();
+        uploadedFile = null;
+        uploadMessage = "";
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+        uploadMessage = $"Selected: {uploadedFile.Name} ({uploadedFile.Size / 1024} KB)";
+    }
+
+    private async Task UploadFloorPlan()
+    {
+        if (uploadedFile == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Read image data
+        var buffer = new byte[uploadedFile.Size];
+        await uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+
+        // Get image dimensions (simplified - just use defaults for now)
+        // In production, you'd want to use an image library to get actual dimensions
+        newFloorPlan.Id = Guid.NewGuid();
+        newFloorPlan.SiteId = SiteId;
+        newFloorPlan.ImageData = buffer;
+        newFloorPlan.ImageMimeType = uploadedFile.ContentType;
+        newFloorPlan.ImageWidth = 1000; // Default width
+        newFloorPlan.ImageHeight = 800; // Default height
+
+        context.FloorPlans.Add(newFloorPlan);
+        await context.SaveChangesAsync();
+
+        showUploadForm = false;
+        await LoadFloorPlans();
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/Tenant/Sites");
+    }
+}
