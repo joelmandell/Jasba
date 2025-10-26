@@ -1,0 +1,102 @@
+@page "/Tenant/Sites"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@using SBAPro.Core.Interfaces
+@attribute [Authorize(Roles = "TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+
+<PageTitle>Site Management - SBA Pro</PageTitle>
+
+<h3>Site Management</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Site</button>
+</div>
+
+@if (showCreateForm)
+{
+    <div class="card mb-3">
+        <div class="card-header">Create New Site</div>
+        <div class="card-body">
+            <EditForm Model="newSite" OnValidSubmit="CreateSite">
+                <div class="mb-3">
+                    <label class="form-label">Site Name</label>
+                    <InputText class="form-control" @bind-Value="newSite.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Address</label>
+                    <InputText class="form-control" @bind-Value="newSite.Address" />
+                </div>
+                <button type="submit" class="btn btn-success">Create</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (sites != null)
+{
+    <div class="row">
+        @foreach (var site in sites)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>@site.Name</strong>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Address:</strong> @site.Address</p>
+                        <p><strong>Floor Plans:</strong> @site.FloorPlans.Count</p>
+                        <a href="/Tenant/Sites/@site.Id/FloorPlans" class="btn btn-sm btn-primary">Manage Floor Plans</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Loading sites...</p>
+}
+
+@code {
+    private List<Site>? sites;
+    private bool showCreateForm = false;
+    private Site newSite = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSites();
+    }
+
+    private async Task LoadSites()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        sites = await context.Sites
+            .Include(s => s.FloorPlans)
+            .ToListAsync();
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        newSite = new Site();
+    }
+
+    private async Task CreateSite()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        newSite.Id = Guid.NewGuid();
+        newSite.TenantId = TenantService.GetTenantId();
+        
+        context.Sites.Add(newSite);
+        await context.SaveChangesAsync();
+
+        showCreateForm = false;
+        await LoadSites();
+    }
+}

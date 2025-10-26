@@ -1,0 +1,84 @@
+@page "/Account/Login"
+@using Microsoft.AspNetCore.Identity
+@using SBAPro.Core.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject NavigationManager NavigationManager
+
+<PageTitle>Login - SBA Pro</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Login to SBA Pro</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                    
+                    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" />
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <InputCheckbox id="rememberMe" class="form-check-input" @bind-Value="loginModel.RememberMe" />
+                            <label for="rememberMe" class="form-check-label">Remember me</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </EditForm>
+                </div>
+            </div>
+            
+            <div class="mt-3 alert alert-info">
+                <strong>Demo Credentials:</strong><br/>
+                SystemAdmin: admin@sbapro.com / Admin@123<br/>
+                TenantAdmin: demo@democompany.se / Demo@123
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        var result = await SignInManager.PasswordSignInAsync(
+            loginModel.Email, 
+            loginModel.Password, 
+            loginModel.RememberMe, 
+            lockoutOnFailure: false);
+
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo("/", true);
+        }
+        else
+        {
+            errorMessage = "Invalid email or password.";
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public bool RememberMe { get; set; }
+    }
+}

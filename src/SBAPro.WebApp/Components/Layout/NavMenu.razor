@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">SBAPro.WebApp</a>
+        <a class="navbar-brand" href="">🧯 SBA Pro</a>
     </div>
 </div>
 
@@ -10,21 +10,57 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
             </NavLink>
         </div>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
+        <AuthorizeView Roles="SystemAdmin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Admin/Tenants">
+                    <span class="bi bi-building" aria-hidden="true"></span> Tenants
+                </NavLink>
+            </div>
+        </AuthorizeView>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+        <AuthorizeView Roles="TenantAdmin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Tenant/Sites">
+                    <span class="bi bi-geo-alt" aria-hidden="true"></span> Sites
+                </NavLink>
+            </div>
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Tenant/ObjectTypes">
+                    <span class="bi bi-tag" aria-hidden="true"></span> Object Types
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
+        <AuthorizeView Roles="Inspector,TenantAdmin">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="Inspector/Rounds">
+                    <span class="bi bi-clipboard-check" aria-hidden="true"></span> Inspection Rounds
+                </NavLink>
+            </div>
+        </AuthorizeView>
+
+        <hr />
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Logout">
+                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                    </NavLink>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Login">
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </nav>
 </div>
 

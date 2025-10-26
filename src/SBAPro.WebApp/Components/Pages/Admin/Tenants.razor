@@ -1,0 +1,132 @@
+@page "/Admin/Tenants"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "SystemAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject UserManager<ApplicationUser> UserManager
+
+<PageTitle>Tenant Management - SBA Pro</PageTitle>
+
+<h3>Tenant Management</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowCreateForm">Create New Tenant</button>
+</div>
+
+@if (showCreateForm)
+{
+    <div class="card mb-3">
+        <div class="card-header">Create New Tenant</div>
+        <div class="card-body">
+            <EditForm Model="newTenant" OnValidSubmit="CreateTenant">
+                <div class="mb-3">
+                    <label class="form-label">Tenant Name</label>
+                    <InputText class="form-control" @bind-Value="newTenant.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Email</label>
+                    <InputText class="form-control" @bind-Value="newTenant.AdminEmail" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Password</label>
+                    <InputText type="password" class="form-control" @bind-Value="newTenant.AdminPassword" />
+                </div>
+                <button type="submit" class="btn btn-success">Create</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (tenants != null)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>ID</th>
+                <th>Users</th>
+                <th>Sites</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tenant in tenants)
+            {
+                <tr>
+                    <td>@tenant.Name</td>
+                    <td><small>@tenant.Id</small></td>
+                    <td>@tenant.Users.Count</td>
+                    <td>@tenant.Sites.Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Tenant>? tenants;
+    private bool showCreateForm = false;
+    private CreateTenantModel newTenant = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTenants();
+    }
+
+    private async Task LoadTenants()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        tenants = await context.Tenants
+            .Include(t => t.Users)
+            .Include(t => t.Sites)
+            .ToListAsync();
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        newTenant = new CreateTenantModel();
+    }
+
+    private async Task CreateTenant()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        var tenant = new Tenant
+        {
+            Id = Guid.NewGuid(),
+            Name = newTenant.Name
+        };
+
+        context.Tenants.Add(tenant);
+        await context.SaveChangesAsync();
+
+        // Create tenant admin user
+        var adminUser = new ApplicationUser
+        {
+            UserName = newTenant.AdminEmail,
+            Email = newTenant.AdminEmail,
+            EmailConfirmed = true,
+            TenantId = tenant.Id
+        };
+
+        var result = await UserManager.CreateAsync(adminUser, newTenant.AdminPassword);
+        if (result.Succeeded)
+        {
+            await UserManager.AddToRoleAsync(adminUser, "TenantAdmin");
+        }
+
+        showCreateForm = false;
+        await LoadTenants();
+    }
+
+    public class CreateTenantModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string AdminEmail { get; set; } = string.Empty;
+        public string AdminPassword { get; set; } = string.Empty;
+    }
+}
