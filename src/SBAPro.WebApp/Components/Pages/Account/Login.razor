@@ -19,7 +19,7 @@
                         <div class="alert alert-danger">@errorMessage</div>
                     }
                     
-                    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
+                    <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="loginForm">
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger" />
 
@@ -53,7 +53,8 @@
 </div>
 
 @code {
-    private LoginModel loginModel = new();
+    [SupplyParameterFromForm]
+    private LoginModel loginModel { get; set; } = new();
     private string? errorMessage;
 
     private async Task HandleLogin()
