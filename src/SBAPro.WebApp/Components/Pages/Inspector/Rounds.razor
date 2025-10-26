@@ -5,52 +5,90 @@
 @using SBAPro.Infrastructure.Data
 @attribute [Authorize(Roles = "Inspector,TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
 
 <PageTitle>Inspection Rounds - SBA Pro</PageTitle>
 
-<h3>Inspection Rounds</h3>
+<div class="content">
+    <div class="mb-4 flex justify-between items-center">
+        <h3 class="text-2xl font-bold">Inspection Rounds</h3>
+        <a href="/Inspector/StartRound" class="btn btn-primary">
+            Start New Round
+        </a>
+    </div>
 
-<p>View and manage your inspection rounds.</p>
-
-@if (rounds != null)
-{
-    @if (rounds.Count == 0)
+    @if (rounds != null)
     {
-        <div class="alert alert-info">
-            No inspection rounds found. Contact your administrator to set up sites and floor plans.
-        </div>
+        @if (rounds.Count == 0)
+        {
+            <div class="alert alert-info">
+                No inspection rounds found. Click "Start New Round" to begin your first inspection.
+            </div>
+        }
+        else
+        {
+            <div class="card">
+                <div class="card-body" style="padding: 0;">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Site</th>
+                                <th>Started</th>
+                                <th>Completed</th>
+                                <th>Status</th>
+                                <th>Results</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var round in rounds)
+                            {
+                                <tr>
+                                    <td>@round.Site.Name</td>
+                                    <td>@round.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@(round.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                    <td>
+                                        @if (round.Status == "Completed")
+                                        {
+                                            <span class="badge badge-success">Completed</span>
+                                        }
+                                        else if (round.Status == "InProgress")
+                                        {
+                                            <span class="badge badge-info">In Progress</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-warning">@round.Status</span>
+                                        }
+                                    </td>
+                                    <td>@round.InspectionResults.Count items</td>
+                                    <td>
+                                        @if (round.Status != "Completed")
+                                        {
+                                            <a href="/Inspector/Execute/@round.Id" class="btn btn-sm btn-primary">
+                                                Continue
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-secondary" @onclick="() => ViewReport(round.Id)">
+                                                View Report
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
     }
     else
     {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Site</th>
-                    <th>Started</th>
-                    <th>Completed</th>
-                    <th>Status</th>
-                    <th>Results</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var round in rounds)
-                {
-                    <tr>
-                        <td>@round.Site.Name</td>
-                        <td>@round.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@(round.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                        <td>@round.Status</td>
-                        <td>@round.InspectionResults.Count</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+        <p>Loading inspection rounds...</p>
     }
-}
-else
-{
-    <p>Loading inspection rounds...</p>
-}
+</div>
 
 @code {
     private List<InspectionRound>? rounds;
@@ -68,5 +106,10 @@ else
             .Include(r => r.InspectionResults)
             .OrderByDescending(r => r.StartedAt)
             .ToListAsync();
+    }
+
+    private void ViewReport(Guid roundId)
+    {
+        NavigationManager.NavigateTo($"/Inspector/Report/{roundId}");
     }
 }

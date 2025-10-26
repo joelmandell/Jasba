@@ -1,0 +1,365 @@
+@page "/Inspector/Execute/{RoundId:guid}"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "Inspector,TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<PageTitle>Execute Inspection - SBA Pro</PageTitle>
+
+<!-- Include Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="content">
+    @if (round == null || floorPlan == null)
+    {
+        <p>Loading inspection round...</p>
+    }
+    else
+    {
+        <div class="mb-4 flex justify-between items-center">
+            <div>
+                <h3 class="text-2xl font-bold">Inspection Round</h3>
+                <p class="text-muted">@round.Site.Name - Started @round.StartedAt.ToString("yyyy-MM-dd HH:mm")</p>
+            </div>
+            <div>
+                <span class="badge badge-info">@round.Status</span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <strong>@floorPlan.Name</strong>
+                        <small class="text-muted ml-2">Click on objects to inspect</small>
+                    </div>
+                    <div class="card-body">
+                        <div id="inspectionMap" style="height: 600px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                @if (selectedObject != null)
+                {
+                    <div class="card mb-3">
+                        <div class="card-header">Inspect: @selectedObject.Type.Icon @selectedObject.Type.Name</div>
+                        <div class="card-body">
+                            <p><strong>Description:</strong> @selectedObject.Description</p>
+                            
+                            @if (currentResult != null)
+                            {
+                                <div class="alert alert-success">
+                                    Already inspected: @currentResult.Status
+                                </div>
+                            }
+
+                            <EditForm Model="inspectionForm" OnValidSubmit="SaveInspection">
+                                <div class="mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select class="form-control form-select" @bind="inspectionForm.Status">
+                                        <option value="OK">✓ OK</option>
+                                        <option value="Issue">⚠ Issue Found</option>
+                                        <option value="NotAccessible">🔒 Not Accessible</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Comment (optional)</label>
+                                    <textarea class="form-control" rows="3" @bind="inspectionForm.Comment" placeholder="Add any notes or issues..."></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-success w-full">Save Inspection</button>
+                                <button type="button" class="btn btn-secondary w-full mt-2" @onclick="ClearSelection">Cancel</button>
+                            </EditForm>
+                        </div>
+                    </div>
+                }
+
+                <div class="card">
+                    <div class="card-header">
+                        Progress: @inspectedCount / @totalObjects
+                    </div>
+                    <div class="card-body">
+                        @if (objects != null && objects.Any())
+                        {
+                            <div class="mb-3">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-primary h-2.5 rounded-full" style="width: @progressPercentage%"></div>
+                                </div>
+                                <small class="text-muted">@progressPercentage% complete</small>
+                            </div>
+
+                            <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                                @foreach (var obj in objects)
+                                {
+                                    var result = results.FirstOrDefault(r => r.ObjectId == obj.Id);
+                                    var statusClass = result?.Status switch
+                                    {
+                                        "OK" => "border-l-4 border-green-500",
+                                        "Issue" => "border-l-4 border-red-500",
+                                        "NotAccessible" => "border-l-4 border-yellow-500",
+                                        _ => ""
+                                    };
+                                    
+                                    <div class="list-group-item @statusClass cursor-pointer" @onclick="() => SelectObject(obj)">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <strong>@obj.Type.Icon @obj.Type.Name</strong><br />
+                                                <small>@obj.Description</small>
+                                            </div>
+                                            <div>
+                                                @if (result != null)
+                                                {
+                                                    @if (result.Status == "OK")
+                                                    {
+                                                        <span class="badge badge-success">OK</span>
+                                                    }
+                                                    else if (result.Status == "Issue")
+                                                    {
+                                                        <span class="badge badge-danger">Issue</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge badge-warning">@result.Status</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not checked</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (inspectedCount == totalObjects && totalObjects > 0)
+                {
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <div class="alert alert-success">
+                                <strong>All objects inspected!</strong>
+                            </div>
+                            <button class="btn btn-primary w-full" @onclick="CompleteRound">
+                                Complete Round
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid RoundId { get; set; }
+
+    private InspectionRound? round;
+    private FloorPlan? floorPlan;
+    private List<InspectionObject>? objects;
+    private List<InspectionResult> results = new();
+    private InspectionObject? selectedObject;
+    private InspectionResult? currentResult;
+    private InspectionForm inspectionForm = new();
+    private IJSObjectReference? module;
+    private DotNetObjectReference<ExecuteRound>? dotNetRef;
+    private int inspectedCount => results.Count;
+    private int totalObjects => objects?.Count ?? 0;
+    private int progressPercentage => totalObjects > 0 ? (inspectedCount * 100 / totalObjects) : 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRound();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && floorPlan != null)
+        {
+            await InitializeMap();
+        }
+    }
+
+    private async Task LoadRound()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        round = await context.InspectionRounds
+            .Include(r => r.Site)
+            .Include(r => r.InspectionResults)
+                .ThenInclude(ir => ir.Object)
+                    .ThenInclude(io => io.Type)
+            .FirstOrDefaultAsync(r => r.Id == RoundId);
+
+        if (round == null) return;
+
+        // Get the first floor plan for this site (for simplicity, we'll use the first one)
+        floorPlan = await context.FloorPlans
+            .Include(fp => fp.InspectionObjects)
+                .ThenInclude(io => io.Type)
+            .FirstOrDefaultAsync(fp => fp.SiteId == round.SiteId);
+
+        if (floorPlan != null)
+        {
+            objects = floorPlan.InspectionObjects.ToList();
+            results = round.InspectionResults.ToList();
+        }
+    }
+
+    private async Task InitializeMap()
+    {
+        if (floorPlan == null) return;
+
+        try
+        {
+            module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/js/inspectionMap.js");
+
+            var imageUrl = $"data:{floorPlan.ImageMimeType};base64,{Convert.ToBase64String(floorPlan.ImageData)}";
+
+            await module.InvokeVoidAsync("initializeInspectionMap", "inspectionMap", imageUrl,
+                floorPlan.ImageWidth, floorPlan.ImageHeight);
+
+            // Add markers for all objects
+            foreach (var obj in objects ?? new())
+            {
+                var result = results.FirstOrDefault(r => r.ObjectId == obj.Id);
+                var status = result?.Status ?? "NotChecked";
+                
+                await module.InvokeVoidAsync("addInspectionMarker", "inspectionMap",
+                    obj.NormalizedX, obj.NormalizedY,
+                    floorPlan.ImageWidth, floorPlan.ImageHeight,
+                    obj.Id.ToString(), obj.Type.Icon, obj.Type.Name, obj.Description, status);
+            }
+
+            // Set up click handler
+            dotNetRef = DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("onMarkerClick", "inspectionMap", dotNetRef);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing map: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public void OnObjectClicked(string objectId)
+    {
+        if (Guid.TryParse(objectId, out var id))
+        {
+            var obj = objects?.FirstOrDefault(o => o.Id == id);
+            if (obj != null)
+            {
+                SelectObject(obj);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void SelectObject(InspectionObject obj)
+    {
+        selectedObject = obj;
+        currentResult = results.FirstOrDefault(r => r.ObjectId == obj.Id);
+        
+        if (currentResult != null)
+        {
+            inspectionForm.Status = currentResult.Status;
+            inspectionForm.Comment = currentResult.Comment;
+        }
+        else
+        {
+            inspectionForm = new InspectionForm { Status = "OK" };
+        }
+    }
+
+    private void ClearSelection()
+    {
+        selectedObject = null;
+        currentResult = null;
+        inspectionForm = new InspectionForm { Status = "OK" };
+    }
+
+    private async Task SaveInspection()
+    {
+        if (selectedObject == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Check if already inspected
+        var existingResult = await context.InspectionResults
+            .FirstOrDefaultAsync(r => r.RoundId == RoundId && r.ObjectId == selectedObject.Id);
+
+        if (existingResult != null)
+        {
+            // Update existing
+            existingResult.Status = inspectionForm.Status;
+            existingResult.Comment = inspectionForm.Comment;
+            existingResult.Timestamp = DateTime.UtcNow;
+        }
+        else
+        {
+            // Create new
+            var result = new InspectionResult
+            {
+                Id = Guid.NewGuid(),
+                RoundId = RoundId,
+                ObjectId = selectedObject.Id,
+                Status = inspectionForm.Status,
+                Comment = inspectionForm.Comment,
+                Timestamp = DateTime.UtcNow
+            };
+            context.InspectionResults.Add(result);
+        }
+
+        await context.SaveChangesAsync();
+
+        // Update marker on map
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("updateMarkerStatus", "inspectionMap",
+                selectedObject.Id.ToString(), inspectionForm.Status);
+        }
+
+        // Reload data
+        await LoadRound();
+        ClearSelection();
+        StateHasChanged();
+    }
+
+    private async Task CompleteRound()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var roundToUpdate = await context.InspectionRounds.FindAsync(RoundId);
+        
+        if (roundToUpdate != null)
+        {
+            roundToUpdate.Status = "Completed";
+            roundToUpdate.CompletedAt = DateTime.UtcNow;
+            await context.SaveChangesAsync();
+        }
+
+        NavigationManager.NavigateTo("/Inspector/Rounds");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module != null)
+        {
+            await module.DisposeAsync();
+        }
+        dotNetRef?.Dispose();
+    }
+
+    private class InspectionForm
+    {
+        public string Status { get; set; } = "OK";
+        public string Comment { get; set; } = string.Empty;
+    }
+}
