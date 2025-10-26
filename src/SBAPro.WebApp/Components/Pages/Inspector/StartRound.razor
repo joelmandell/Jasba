@@ -1,0 +1,189 @@
+@page "/Inspector/StartRound"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "Inspector,TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>Start Inspection Round - SBA Pro</PageTitle>
+
+<div class="content">
+    <h3 class="text-2xl font-bold mb-6">Start New Inspection Round</h3>
+
+    @if (message != null)
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success")">
+            @message
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-header">Select Site and Floor Plan</div>
+        <div class="card-body">
+            @if (sites == null)
+            {
+                <p>Loading sites...</p>
+            }
+            else if (sites.Count == 0)
+            {
+                <div class="alert alert-info">
+                    No sites available. Contact your administrator to set up sites and floor plans.
+                </div>
+            }
+            else
+            {
+                <EditForm Model="this" OnValidSubmit="StartInspectionRound">
+                    <div class="mb-3">
+                        <label class="form-label">Site</label>
+                        <select class="form-control form-select" @onchange="OnSiteSelected">
+                            <option value="">Select a site...</option>
+                            @foreach (var site in sites)
+                            {
+                                <option value="@site.Id">@site.Name - @site.Address</option>
+                            }
+                        </select>
+                    </div>
+
+                    @if (selectedSite != null)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">Floor Plan</label>
+                            @if (selectedSite.FloorPlans.Count == 0)
+                            {
+                                <div class="alert alert-warning">
+                                    This site has no floor plans. Ask your administrator to upload floor plans.
+                                </div>
+                            }
+                            else
+                            {
+                                <select class="form-control form-select" @bind="selectedFloorPlanId">
+                                    <option value="">Select a floor plan...</option>
+                                    @foreach (var fp in selectedSite.FloorPlans)
+                                    {
+                                        <option value="@fp.Id">@fp.Name (@fp.InspectionObjects.Count objects)</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+
+                        @if (selectedFloorPlan != null)
+                        {
+                            <div class="alert alert-info">
+                                <strong>Ready to start!</strong><br />
+                                This floor plan has @selectedFloorPlan.InspectionObjects.Count inspection objects.
+                            </div>
+                        }
+                    }
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success" disabled="@(selectedFloorPlan == null)">
+                            Start Inspection Round
+                        </button>
+                        <a href="/Inspector/Rounds" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Site>? sites;
+    private Site? selectedSite;
+    private Guid? selectedFloorPlanId;
+    private FloorPlan? selectedFloorPlan;
+    private string? message;
+    private bool isError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSites();
+    }
+
+    private async Task LoadSites()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        sites = await context.Sites
+            .Include(s => s.FloorPlans)
+                .ThenInclude(fp => fp.InspectionObjects)
+                    .ThenInclude(io => io.Type)
+            .ToListAsync();
+    }
+
+    private void OnSiteSelected(ChangeEventArgs e)
+    {
+        var siteIdStr = e.Value?.ToString();
+        if (Guid.TryParse(siteIdStr, out var siteId))
+        {
+            selectedSite = sites?.FirstOrDefault(s => s.Id == siteId);
+            selectedFloorPlanId = null;
+            selectedFloorPlan = null;
+        }
+        else
+        {
+            selectedSite = null;
+            selectedFloorPlanId = null;
+            selectedFloorPlan = null;
+        }
+    }
+
+    private async Task StartInspectionRound()
+    {
+        if (selectedFloorPlan == null || selectedSite == null)
+        {
+            message = "Please select both a site and floor plan.";
+            isError = true;
+            return;
+        }
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            // Get current user
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (string.IsNullOrEmpty(userId))
+            {
+                message = "Could not determine current user.";
+                isError = true;
+                return;
+            }
+
+            // Create new inspection round
+            var round = new InspectionRound
+            {
+                Id = Guid.NewGuid(),
+                SiteId = selectedSite.Id,
+                FloorPlanId = selectedFloorPlan.Id,
+                InspectorId = userId,
+                StartedAt = DateTime.UtcNow,
+                Status = "InProgress"
+            };
+
+            context.InspectionRounds.Add(round);
+            await context.SaveChangesAsync();
+
+            // Navigate to the inspection execution page
+            NavigationManager.NavigateTo($"/Inspector/Execute/{round.Id}");
+        }
+        catch (Exception ex)
+        {
+            message = $"Error starting round: {ex.Message}";
+            isError = true;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (selectedFloorPlanId.HasValue && selectedSite != null)
+        {
+            selectedFloorPlan = selectedSite.FloorPlans.FirstOrDefault(fp => fp.Id == selectedFloorPlanId.Value);
+        }
+    }
+}
