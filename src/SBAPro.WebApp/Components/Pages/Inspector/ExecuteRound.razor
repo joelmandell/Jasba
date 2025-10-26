@@ -194,6 +194,9 @@
         using var context = await DbFactory.CreateDbContextAsync();
         round = await context.InspectionRounds
             .Include(r => r.Site)
+            .Include(r => r.FloorPlan)
+                .ThenInclude(fp => fp.InspectionObjects)
+                    .ThenInclude(io => io.Type)
             .Include(r => r.InspectionResults)
                 .ThenInclude(ir => ir.Object)
                     .ThenInclude(io => io.Type)
@@ -201,11 +204,7 @@
 
         if (round == null) return;
 
-        // Get the first floor plan for this site (for simplicity, we'll use the first one)
-        floorPlan = await context.FloorPlans
-            .Include(fp => fp.InspectionObjects)
-                .ThenInclude(io => io.Type)
-            .FirstOrDefaultAsync(fp => fp.SiteId == round.SiteId);
+        floorPlan = round.FloorPlan;
 
         if (floorPlan != null)
         {

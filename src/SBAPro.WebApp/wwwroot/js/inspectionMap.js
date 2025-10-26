@@ -102,6 +102,9 @@ export function addInspectionMarker(mapId, x, y, imageWidth, imageHeight, object
         // Store object ID and status on marker
         marker.objectId = objectId;
         marker.objectStatus = status;
+        
+        // Store object data for later use when updating
+        marker.objectData = { icon, name, description };
 
         // Store marker reference
         if (!markers[mapId]) {
@@ -177,25 +180,20 @@ export function updateMarkerStatus(mapId, objectId, newStatus) {
         // Update status
         marker.objectStatus = newStatus;
         
-        // Update popup if it exists
-        const currentPopup = marker.getPopup();
-        if (currentPopup) {
-            const content = currentPopup.getContent();
-            // Extract icon, name, and description from existing popup
-            const match = content.match(/<strong>(.*?)<\/strong><br\/><small>(.*?)<\/small>/);
-            if (match) {
-                const [_, iconAndName, description] = match;
-                const popupContent = `
-                    <div style="min-width: 150px;">
-                        <strong>${iconAndName}</strong><br/>
-                        <small>${description}</small><br/>
-                        <span style="margin-top: 8px; display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background-color: ${getStatusColor(newStatus)}; color: white;">
-                            ${getStatusLabel(newStatus)}
-                        </span>
-                    </div>
-                `;
-                marker.setPopupContent(popupContent);
-            }
+        // Update popup content by recreating it
+        // Store the original data on the marker
+        if (marker.objectData) {
+            const { icon, name, description } = marker.objectData;
+            const popupContent = `
+                <div style="min-width: 150px;">
+                    <strong>${icon} ${name}</strong><br/>
+                    <small>${description}</small><br/>
+                    <span style="margin-top: 8px; display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background-color: ${getStatusColor(newStatus)}; color: white;">
+                        ${getStatusLabel(newStatus)}
+                    </span>
+                </div>
+            `;
+            marker.setPopupContent(popupContent);
         }
 
         return true;
