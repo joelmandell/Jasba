@@ -1,0 +1,95 @@
+@page "/Tenant/ObjectTypes"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@using SBAPro.Core.Interfaces
+@attribute [Authorize(Roles = "TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+
+<PageTitle>Object Types - SBA Pro</PageTitle>
+
+<h3>Inspection Object Types</h3>
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Type</button>
+</div>
+
+@if (showCreateForm)
+{
+    <div class="card mb-3">
+        <div class="card-header">Create New Object Type</div>
+        <div class="card-body">
+            <EditForm Model="newType" OnValidSubmit="CreateType">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="newType.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Icon (emoji or symbol)</label>
+                    <InputText class="form-control" @bind-Value="newType.Icon" placeholder="🧯" />
+                </div>
+                <button type="submit" class="btn btn-success">Create</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (objectTypes != null)
+{
+    <div class="row">
+        @foreach (var type in objectTypes)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@type.Icon @type.Name</h5>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Loading object types...</p>
+}
+
+@code {
+    private List<InspectionObjectType>? objectTypes;
+    private bool showCreateForm = false;
+    private InspectionObjectType newType = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTypes();
+    }
+
+    private async Task LoadTypes()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        objectTypes = await context.InspectionObjectTypes.ToListAsync();
+    }
+
+    private void ShowCreateForm()
+    {
+        showCreateForm = true;
+        newType = new InspectionObjectType();
+    }
+
+    private async Task CreateType()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        newType.Id = Guid.NewGuid();
+        newType.TenantId = TenantService.GetTenantId();
+        
+        context.InspectionObjectTypes.Add(newType);
+        await context.SaveChangesAsync();
+
+        showCreateForm = false;
+        await LoadTypes();
+    }
+}

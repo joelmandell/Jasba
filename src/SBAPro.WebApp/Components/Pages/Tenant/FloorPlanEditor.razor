@@ -1,0 +1,222 @@
+@page "/Tenant/FloorPlans/{FloorPlanId:guid}/Edit"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
+@using SBAPro.Core.Entities
+@using SBAPro.Infrastructure.Data
+@using SBAPro.Core.Interfaces
+@attribute [Authorize(Roles = "TenantAdmin")]
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
+
+<PageTitle>Edit Floor Plan - SBA Pro</PageTitle>
+
+<!-- Include Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<h3>Edit Floor Plan: @floorPlanName</h3>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <strong>Floor Plan</strong>
+                <small class="text-muted">Click on the map to place inspection objects</small>
+            </div>
+            <div class="card-body">
+                <div id="floorPlanMap" style="height: 600px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        @if (showObjectForm)
+        {
+            <div class="card">
+                <div class="card-header">Add Inspection Object</div>
+                <div class="card-body">
+                    <EditForm Model="newObject" OnValidSubmit="SaveObject">
+                        <div class="mb-3">
+                            <label class="form-label">Object Type</label>
+                            <select class="form-control" @bind="newObject.TypeId">
+                                <option value="">Select type...</option>
+                                @foreach (var type in objectTypes ?? new())
+                                {
+                                    <option value="@type.Id">@type.Icon @type.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputText class="form-control" @bind-Value="newObject.Description" />
+                        </div>
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CancelAdd">Cancel</button>
+                    </EditForm>
+                </div>
+            </div>
+        }
+
+        <div class="card mt-3">
+            <div class="card-header">Inspection Objects (@objects?.Count ?? 0)</div>
+            <div class="card-body">
+                @if (objects != null && objects.Any())
+                {
+                    <div class="list-group">
+                        @foreach (var obj in objects)
+                        {
+                            <div class="list-group-item">
+                                <strong>@obj.Type.Icon @obj.Type.Name</strong><br />
+                                <small>@obj.Description</small>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No objects yet. Click on the map to add one.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid FloorPlanId { get; set; }
+
+    private FloorPlan? floorPlan;
+    private string floorPlanName = "";
+    private List<InspectionObject>? objects;
+    private List<InspectionObjectType>? objectTypes;
+    private bool showObjectForm = false;
+    private InspectionObject newObject = new();
+    private double clickedX = 0;
+    private double clickedY = 0;
+    private IJSObjectReference? module;
+    private DotNetObjectReference<FloorPlanEditor>? dotNetRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFloorPlan();
+        await LoadObjectTypes();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && floorPlan != null)
+        {
+            await InitializeMap();
+        }
+    }
+
+    private async Task LoadFloorPlan()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        floorPlan = await context.FloorPlans
+            .Include(fp => fp.InspectionObjects)
+                .ThenInclude(io => io.Type)
+            .FirstOrDefaultAsync(fp => fp.Id == FloorPlanId);
+
+        if (floorPlan != null)
+        {
+            floorPlanName = floorPlan.Name;
+            objects = floorPlan.InspectionObjects.ToList();
+        }
+    }
+
+    private async Task LoadObjectTypes()
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        objectTypes = await context.InspectionObjectTypes.ToListAsync();
+    }
+
+    private async Task InitializeMap()
+    {
+        if (floorPlan == null) return;
+
+        try
+        {
+            module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/js/leafletMap.js");
+
+            // Convert image to data URL
+            var imageUrl = $"data:{floorPlan.ImageMimeType};base64,{Convert.ToBase64String(floorPlan.ImageData)}";
+
+            // Initialize map
+            await module.InvokeVoidAsync("initializeMap", "floorPlanMap", imageUrl, 
+                floorPlan.ImageWidth, floorPlan.ImageHeight);
+
+            // Add existing markers
+            foreach (var obj in objects ?? new())
+            {
+                await module.InvokeVoidAsync("addMarker", "floorPlanMap", 
+                    obj.NormalizedX, obj.NormalizedY,
+                    floorPlan.ImageWidth, floorPlan.ImageHeight,
+                    obj.Id.ToString(), obj.Type.Name, obj.Description);
+            }
+
+            // Set up click handler
+            dotNetRef = DotNetObjectReference.Create(this);
+            await module.InvokeVoidAsync("onMapClick", "floorPlanMap", dotNetRef,
+                floorPlan.ImageWidth, floorPlan.ImageHeight);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing map: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public void OnMapClicked(double x, double y)
+    {
+        clickedX = x;
+        clickedY = y;
+        showObjectForm = true;
+        StateHasChanged();
+    }
+
+    private async Task SaveObject()
+    {
+        if (floorPlan == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        newObject.Id = Guid.NewGuid();
+        newObject.FloorPlanId = FloorPlanId;
+        newObject.NormalizedX = clickedX;
+        newObject.NormalizedY = clickedY;
+
+        context.InspectionObjects.Add(newObject);
+        await context.SaveChangesAsync();
+
+        // Add marker to map
+        var objType = objectTypes?.FirstOrDefault(t => t.Id == newObject.TypeId);
+        if (module != null && objType != null)
+        {
+            await module.InvokeVoidAsync("addMarker", "floorPlanMap",
+                newObject.NormalizedX, newObject.NormalizedY,
+                floorPlan.ImageWidth, floorPlan.ImageHeight,
+                newObject.Id.ToString(), objType.Name, newObject.Description);
+        }
+
+        showObjectForm = false;
+        await LoadFloorPlan();
+    }
+
+    private void CancelAdd()
+    {
+        showObjectForm = false;
+        newObject = new();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (module != null)
+        {
+            await module.DisposeAsync();
+        }
+        dotNetRef?.Dispose();
+    }
+}
