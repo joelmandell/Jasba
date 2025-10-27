@@ -184,22 +184,27 @@
 
         using var context = await DbFactory.CreateDbContextAsync();
 
-        newObject.Id = Guid.NewGuid();
-        newObject.FloorPlanId = FloorPlanId;
-        newObject.NormalizedX = clickedX;
-        newObject.NormalizedY = clickedY;
+        var inspectionObject = new InspectionObject
+        {
+            Id = Guid.NewGuid(),
+            TypeId = newObject.TypeId,
+            Description = newObject.Description,
+            FloorPlanId = FloorPlanId,
+            NormalizedX = clickedX,
+            NormalizedY = clickedY
+        };
 
-        context.InspectionObjects.Add(newObject);
+        context.InspectionObjects.Add(inspectionObject);
         await context.SaveChangesAsync();
 
         // Add marker to map
-        var objType = objectTypes?.FirstOrDefault(t => t.Id == newObject.TypeId);
+        var objType = objectTypes?.FirstOrDefault(t => t.Id == inspectionObject.TypeId);
         if (module != null && objType != null)
         {
             await module.InvokeVoidAsync("addMarker", "floorPlanMap",
-                newObject.NormalizedX, newObject.NormalizedY,
+                inspectionObject.NormalizedX, inspectionObject.NormalizedY,
                 floorPlan.ImageWidth, floorPlan.ImageHeight,
-                newObject.Id.ToString(), objType.Name, newObject.Description);
+                inspectionObject.Id.ToString(), objType.Name, inspectionObject.Description);
         }
 
         showObjectForm = false;

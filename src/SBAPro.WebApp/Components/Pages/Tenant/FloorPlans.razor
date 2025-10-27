@@ -128,14 +128,18 @@ else
 
         // Get image dimensions (simplified - just use defaults for now)
         // In production, you'd want to use an image library to get actual dimensions
-        newFloorPlan.Id = Guid.NewGuid();
-        newFloorPlan.SiteId = SiteId;
-        newFloorPlan.ImageData = buffer;
-        newFloorPlan.ImageMimeType = uploadedFile.ContentType;
-        newFloorPlan.ImageWidth = 1000; // Default width
-        newFloorPlan.ImageHeight = 800; // Default height
+        var floorPlan = new FloorPlan
+        {
+            Id = Guid.NewGuid(),
+            Name = newFloorPlan.Name,
+            SiteId = SiteId,
+            ImageData = buffer,
+            ImageMimeType = uploadedFile.ContentType,
+            ImageWidth = 1000, // Default width
+            ImageHeight = 800  // Default height
+        };
 
-        context.FloorPlans.Add(newFloorPlan);
+        context.FloorPlans.Add(floorPlan);
         await context.SaveChangesAsync();
 
         showUploadForm = false;
