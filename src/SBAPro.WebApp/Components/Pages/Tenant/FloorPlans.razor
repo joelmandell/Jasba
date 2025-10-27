@@ -106,6 +106,7 @@ else
         newFloorPlan = new FloorPlan();
         uploadedFile = null;
         uploadMessage = "";
+        StateHasChanged();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
