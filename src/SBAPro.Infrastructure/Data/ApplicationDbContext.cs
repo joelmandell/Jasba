@@ -32,8 +32,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             var tenantId = _tenantService.GetTenantId();
             
+            // Direct tenant filtering
             builder.Entity<Site>().HasQueryFilter(s => s.TenantId == tenantId);
             builder.Entity<InspectionObjectType>().HasQueryFilter(iot => iot.TenantId == tenantId);
+            
+            // Indirect tenant filtering through relationships
+            builder.Entity<FloorPlan>().HasQueryFilter(fp => fp.Site.TenantId == tenantId);
+            builder.Entity<InspectionObject>().HasQueryFilter(io => io.FloorPlan.Site.TenantId == tenantId);
+            builder.Entity<InspectionRound>().HasQueryFilter(ir => ir.Site.TenantId == tenantId);
+            builder.Entity<InspectionResult>().HasQueryFilter(ir => ir.Round.Site.TenantId == tenantId);
         }
 
         // Configure relationships
@@ -60,6 +67,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithOne(fp => fp.Site)
             .HasForeignKey(fp => fp.SiteId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Site>()
+            .HasMany(s => s.InspectionRounds)
+            .WithOne(ir => ir.Site)
+            .HasForeignKey(ir => ir.SiteId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<FloorPlan>()
             .HasMany(fp => fp.InspectionObjects)
