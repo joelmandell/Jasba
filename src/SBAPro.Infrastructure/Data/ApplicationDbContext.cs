@@ -30,17 +30,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         // Apply global query filters for multi-tenancy if tenant service is available
         if (_tenantService != null)
         {
-            var tenantId = _tenantService.GetTenantId();
-            
-            // Direct tenant filtering
-            builder.Entity<Site>().HasQueryFilter(s => s.TenantId == tenantId);
-            builder.Entity<InspectionObjectType>().HasQueryFilter(iot => iot.TenantId == tenantId);
+            // Direct tenant filtering - evaluate tenant ID at query time, not model creation time
+            builder.Entity<Site>().HasQueryFilter(s => s.TenantId == _tenantService.GetTenantId());
+            builder.Entity<InspectionObjectType>().HasQueryFilter(iot => iot.TenantId == _tenantService.GetTenantId());
             
             // Indirect tenant filtering through relationships
-            builder.Entity<FloorPlan>().HasQueryFilter(fp => fp.Site.TenantId == tenantId);
-            builder.Entity<InspectionObject>().HasQueryFilter(io => io.FloorPlan.Site.TenantId == tenantId);
-            builder.Entity<InspectionRound>().HasQueryFilter(ir => ir.Site.TenantId == tenantId);
-            builder.Entity<InspectionResult>().HasQueryFilter(ir => ir.Round.Site.TenantId == tenantId);
+            builder.Entity<FloorPlan>().HasQueryFilter(fp => fp.Site.TenantId == _tenantService.GetTenantId());
+            builder.Entity<InspectionObject>().HasQueryFilter(io => io.FloorPlan.Site.TenantId == _tenantService.GetTenantId());
+            builder.Entity<InspectionRound>().HasQueryFilter(ir => ir.Site.TenantId == _tenantService.GetTenantId());
+            builder.Entity<InspectionResult>().HasQueryFilter(ir => ir.Round.Site.TenantId == _tenantService.GetTenantId());
         }
 
         // Configure relationships

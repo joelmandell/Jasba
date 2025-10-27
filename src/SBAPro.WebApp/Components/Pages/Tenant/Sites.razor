@@ -92,10 +92,15 @@ else
     {
         using var context = await DbFactory.CreateDbContextAsync();
         
-        newSite.Id = Guid.NewGuid();
-        newSite.TenantId = TenantService.GetTenantId();
+        var site = new Site
+        {
+            Id = Guid.NewGuid(),
+            Name = newSite.Name,
+            Address = newSite.Address,
+            TenantId = TenantService.GetTenantId()
+        };
         
-        context.Sites.Add(newSite);
+        context.Sites.Add(site);
         await context.SaveChangesAsync();
 
         showCreateForm = false;

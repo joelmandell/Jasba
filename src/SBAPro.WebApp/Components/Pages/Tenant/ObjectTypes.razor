@@ -85,10 +85,15 @@ else
     {
         using var context = await DbFactory.CreateDbContextAsync();
         
-        newType.Id = Guid.NewGuid();
-        newType.TenantId = TenantService.GetTenantId();
+        var objectType = new InspectionObjectType
+        {
+            Id = Guid.NewGuid(),
+            Name = newType.Name,
+            Icon = newType.Icon,
+            TenantId = TenantService.GetTenantId()
+        };
         
-        context.InspectionObjectTypes.Add(newType);
+        context.InspectionObjectTypes.Add(objectType);
         await context.SaveChangesAsync();
 
         showCreateForm = false;
