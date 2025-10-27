@@ -169,12 +169,15 @@
     }
 
     [JSInvokable]
-    public void OnMapClicked(double x, double y)
+    public async Task OnMapClicked(double x, double y)
     {
-        clickedX = x;
-        clickedY = y;
-        showObjectForm = true;
-        StateHasChanged();
+        await InvokeAsync(() =>
+        {
+            clickedX = x;
+            clickedY = y;
+            showObjectForm = true;
+            StateHasChanged();
+        });
     }
 
     private async Task SaveObject()

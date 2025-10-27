@@ -249,15 +249,18 @@
     }
 
     [JSInvokable]
-    public void OnObjectClicked(string objectId)
+    public async Task OnObjectClicked(string objectId)
     {
         if (Guid.TryParse(objectId, out var id))
         {
             var obj = objects?.FirstOrDefault(o => o.Id == id);
             if (obj != null)
             {
-                SelectObject(obj);
-                StateHasChanged();
+                await InvokeAsync(() =>
+                {
+                    SelectObject(obj);
+                    StateHasChanged();
+                });
             }
         }
     }
