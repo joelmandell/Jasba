@@ -152,7 +152,9 @@ export function onMarkerClick(mapId, dotnetHelper) {
         map.eachLayer(function(layer) {
             if (layer instanceof L.Marker && layer.objectId) {
                 layer.off('click'); // Remove any existing handlers
-                layer.on('click', function() {
+                layer.on('click', function(e) {
+                    // Stop event propagation to prevent map click
+                    L.DomEvent.stopPropagation(e);
                     dotnetHelper.invokeMethodAsync('OnObjectClicked', layer.objectId);
                 });
             }
