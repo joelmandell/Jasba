@@ -81,6 +81,7 @@
     {
         using var context = await DbFactory.CreateDbContextAsync();
         tenants = await context.Tenants
+            .IgnoreQueryFilters()
             .Include(t => t.Users)
             .Include(t => t.Sites)
             .ToListAsync();
