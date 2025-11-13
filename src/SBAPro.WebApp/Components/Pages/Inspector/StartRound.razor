@@ -161,10 +161,9 @@
             {
                 Id = Guid.NewGuid(),
                 SiteId = selectedSite.Id,
-                FloorPlanId = selectedFloorPlan.Id,
                 InspectorId = userId,
                 StartedAt = DateTime.UtcNow,
-                Status = "InProgress"
+                Status = InspectionRoundStatus.InProgress
             };
 
             context.InspectionRounds.Add(round);

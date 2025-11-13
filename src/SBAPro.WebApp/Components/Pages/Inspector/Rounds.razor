@@ -49,11 +49,11 @@
                                     <td>@round.StartedAt.ToString("yyyy-MM-dd HH:mm")</td>
                                     <td>@(round.CompletedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                                     <td>
-                                        @if (round.Status == "Completed")
+                                        @if (round.Status == InspectionRoundStatus.Completed)
                                         {
                                             <span class="badge badge-success">Completed</span>
                                         }
-                                        else if (round.Status == "InProgress")
+                                        else if (round.Status == InspectionRoundStatus.InProgress)
                                         {
                                             <span class="badge badge-info">In Progress</span>
                                         }
@@ -64,7 +64,7 @@
                                     </td>
                                     <td>@round.InspectionResults.Count items</td>
                                     <td>
-                                        @if (round.Status != "Completed")
+                                        @if (round.Status != InspectionRoundStatus.Completed)
                                         {
                                             <a href="/Inspector/Execute/@round.Id" class="btn btn-sm btn-primary">
                                                 Continue

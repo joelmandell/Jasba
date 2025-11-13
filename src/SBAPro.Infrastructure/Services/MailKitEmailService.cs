@@ -14,7 +14,12 @@ public class MailKitEmailService : IEmailService
         _configuration = configuration;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = true)
+    {
+        await SendEmailAsync(new[] { to }, subject, body, isHtml);
+    }
+
+    public async Task SendEmailAsync(IEnumerable<string> recipients, string subject, string body, bool isHtml = true)
     {
         var smtpServer = _configuration["Email:SmtpServer"] ?? "localhost";
         var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
@@ -25,13 +30,23 @@ public class MailKitEmailService : IEmailService
 
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(fromName, fromEmail));
-        message.To.Add(new MailboxAddress(to, to));
+        
+        foreach (var recipient in recipients)
+        {
+            message.To.Add(new MailboxAddress(recipient, recipient));
+        }
+        
         message.Subject = subject;
 
-        var bodyBuilder = new BodyBuilder
+        var bodyBuilder = new BodyBuilder();
+        if (isHtml)
         {
-            HtmlBody = body
-        };
+            bodyBuilder.HtmlBody = body;
+        }
+        else
+        {
+            bodyBuilder.TextBody = body;
+        }
         message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();

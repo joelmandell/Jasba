@@ -101,11 +101,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(ir => ir.InspectorId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.Entity<InspectionRound>()
-            .HasOne(ir => ir.FloorPlan)
-            .WithMany()
-            .HasForeignKey(ir => ir.FloorPlanId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

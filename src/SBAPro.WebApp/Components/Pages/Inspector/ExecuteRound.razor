@@ -101,9 +101,9 @@
                                     var result = results.FirstOrDefault(r => r.ObjectId == obj.Id);
                                     var statusClass = result?.Status switch
                                     {
-                                        "OK" => "border-l-4 border-green-500",
-                                        "Issue" => "border-l-4 border-red-500",
-                                        "NotAccessible" => "border-l-4 border-yellow-500",
+                                        InspectionStatus.Ok => "border-l-4 border-green-500",
+                                        InspectionStatus.Deficient => "border-l-4 border-red-500",
+                                        InspectionStatus.NotAccessible => "border-l-4 border-yellow-500",
                                         _ => ""
                                     };
                                     
@@ -116,11 +116,11 @@
                                             <div>
                                                 @if (result != null)
                                                 {
-                                                    @if (result.Status == "OK")
+                                                    @if (result.Status == InspectionStatus.Ok)
                                                     {
                                                         <span class="badge badge-success">OK</span>
                                                     }
-                                                    else if (result.Status == "Issue")
+                                                    else if (result.Status == InspectionStatus.Deficient)
                                                     {
                                                         <span class="badge badge-danger">Issue</span>
                                                     }
@@ -195,9 +195,9 @@
         using var context = await DbFactory.CreateDbContextAsync();
         round = await context.InspectionRounds
             .Include(r => r.Site)
-            .Include(r => r.FloorPlan)
-                .ThenInclude(fp => fp.InspectionObjects)
-                    .ThenInclude(io => io.Type)
+                .ThenInclude(s => s.FloorPlans)
+                    .ThenInclude(fp => fp.InspectionObjects)
+                        .ThenInclude(io => io.Type)
             .Include(r => r.InspectionResults)
                 .ThenInclude(ir => ir.Object)
                     .ThenInclude(io => io.Type)
@@ -205,7 +205,8 @@
 
         if (round == null) return;
 
-        floorPlan = round.FloorPlan;
+        // Get the first floor plan for the site (or you may want to select a specific one)
+        floorPlan = round.Site.FloorPlans.FirstOrDefault();
 
         if (floorPlan != null)
         {
@@ -231,7 +232,7 @@
             foreach (var obj in objects ?? new())
             {
                 var result = results.FirstOrDefault(r => r.ObjectId == obj.Id);
-                var status = result?.Status ?? "NotChecked";
+                var status = result?.Status.ToString() ?? "NotInspected";
                 
                 await module.InvokeVoidAsync("addInspectionMarker", "inspectionMap",
                     obj.NormalizedX, obj.NormalizedY,
@@ -274,11 +275,11 @@
         if (currentResult != null)
         {
             inspectionForm.Status = currentResult.Status;
-            inspectionForm.Comment = currentResult.Comment;
+            inspectionForm.Comment = currentResult.Comment ?? string.Empty;
         }
         else
         {
-            inspectionForm = new InspectionForm { Status = "OK" };
+            inspectionForm = new InspectionForm { Status = InspectionStatus.Ok };
         }
     }
 
@@ -286,7 +287,7 @@
     {
         selectedObject = null;
         currentResult = null;
-        inspectionForm = new InspectionForm { Status = "OK" };
+        inspectionForm = new InspectionForm { Status = InspectionStatus.Ok };
     }
 
     private async Task SaveInspection()
@@ -343,7 +344,7 @@
         
         if (roundToUpdate != null)
         {
-            roundToUpdate.Status = "Completed";
+            roundToUpdate.Status = InspectionRoundStatus.Completed;
             roundToUpdate.CompletedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
@@ -362,7 +363,7 @@
 
     private class InspectionForm
     {
-        public string Status { get; set; } = "OK";
+        public InspectionStatus Status { get; set; } = InspectionStatus.Ok;
         public string Comment { get; set; } = string.Empty;
     }
 }
