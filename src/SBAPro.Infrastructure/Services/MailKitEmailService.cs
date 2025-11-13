@@ -53,7 +53,12 @@ public class MailKitEmailService : IEmailService
         
         try
         {
-            await client.ConnectAsync(smtpServer, smtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+            // Use None for development (MailHog), StartTls for production
+            var secureSocketOptions = smtpPort == 1025 
+                ? MailKit.Security.SecureSocketOptions.None 
+                : MailKit.Security.SecureSocketOptions.StartTls;
+            
+            await client.ConnectAsync(smtpServer, smtpPort, secureSocketOptions);
             
             if (!string.IsNullOrEmpty(smtpUsername))
             {

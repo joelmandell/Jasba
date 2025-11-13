@@ -89,4 +89,55 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Validation endpoints for infrastructure testing (development only)
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/test-services", (
+        ApplicationDbContext dbContext,
+        ITenantService tenantService,
+        IEmailService emailService,
+        IReportGenerator reportGenerator) =>
+    {
+        return Results.Ok(new
+        {
+            DbContext = dbContext != null ? "✓" : "✗",
+            TenantService = tenantService != null ? "✓" : "✗",
+            EmailService = emailService != null ? "✓" : "✗",
+            ReportGenerator = reportGenerator != null ? "✓" : "✗"
+        });
+    });
+
+    app.MapGet("/test-tenant-service", (ITenantService tenantService, HttpContext httpContext) =>
+    {
+        var user = httpContext.User;
+        var tenantId = tenantService.TryGetTenantId();
+        
+        return Results.Ok(new
+        {
+            IsAuthenticated = user.Identity?.IsAuthenticated,
+            UserName = user.Identity?.Name,
+            TenantId = tenantId,
+            TenantIdClaim = user.FindFirst("TenantId")?.Value
+        });
+    });
+
+    app.MapGet("/test-email", async (IEmailService emailService) =>
+    {
+        try
+        {
+            await emailService.SendEmailAsync(
+                "test@example.com",
+                "Test Email from SBA Pro",
+                "<h1>Test Email</h1><p>This is a test email with <strong>HTML</strong> content.</p><p>Swedish characters: åäö ÅÄÖ</p>"
+            );
+            
+            return Results.Ok("Email sent successfully. Check MailHog at http://localhost:8025");
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem($"Email failed: {ex.Message}");
+        }
+    });
+}
+
 app.Run();
