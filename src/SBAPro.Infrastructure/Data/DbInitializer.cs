@@ -65,6 +65,21 @@ public static class DbInitializer
                 await userManager.AddToRoleAsync(tenantAdmin, "TenantAdmin");
             }
 
+            // Create demo inspector
+            var inspector = new ApplicationUser
+            {
+                UserName = "inspector@democompany.se",
+                Email = "inspector@democompany.se",
+                EmailConfirmed = true,
+                TenantId = demoTenant.Id
+            };
+
+            var inspectorResult = await userManager.CreateAsync(inspector, "Inspector@123");
+            if (inspectorResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(inspector, "Inspector");
+            }
+
             // Create some default inspection object types
             var objectTypes = new[]
             {
@@ -75,6 +90,18 @@ public static class DbInitializer
             };
 
             context.InspectionObjectTypes.AddRange(objectTypes);
+            await context.SaveChangesAsync();
+
+            // Create sample site
+            var sampleSite = new Site
+            {
+                Id = Guid.NewGuid(),
+                Name = "Demo Huvudkontor",
+                Address = "Drottninggatan 1, Stockholm",
+                TenantId = demoTenant.Id
+            };
+
+            context.Sites.Add(sampleSite);
             await context.SaveChangesAsync();
         }
     }
