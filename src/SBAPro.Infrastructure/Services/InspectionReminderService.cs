@@ -57,7 +57,9 @@ public class InspectionReminderService : BackgroundService
         // Find sites that need inspection (no inspection in last 30 days or never inspected)
         var thirtyDaysAgo = DateTime.UtcNow.AddDays(-30);
         
+        // Use IgnoreQueryFilters to bypass tenant filtering in background service
         var sitesNeedingInspection = await context.Sites
+            .IgnoreQueryFilters()
             .Include(s => s.Tenant)
             .Include(s => s.InspectionRounds)
             .Where(s => !s.InspectionRounds.Any() || 
