@@ -15,10 +15,20 @@ public class TenantService : ITenantService
 
     public Guid GetTenantId()
     {
+        var tenantId = TryGetTenantId();
+        if (tenantId == null)
+        {
+            throw new InvalidOperationException("No tenant context is available for the current user.");
+        }
+        return tenantId.Value;
+    }
+
+    public Guid? TryGetTenantId()
+    {
         var user = _httpContextAccessor.HttpContext?.User;
         if (user == null || !user.Identity?.IsAuthenticated == true)
         {
-            return Guid.Empty;
+            return null;
         }
 
         var tenantIdClaim = user.FindFirst("TenantId");
@@ -27,6 +37,6 @@ public class TenantService : ITenantService
             return tenantId;
         }
 
-        return Guid.Empty;
+        return null;
     }
 }
