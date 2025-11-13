@@ -2,11 +2,15 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
 @using SBAPro.Core.Entities
+@using SBAPro.Core.Interfaces
 @using SBAPro.Infrastructure.Data
 @attribute [Authorize(Roles = "Inspector,TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject IReportGenerator ReportGenerator
 
 <PageTitle>Inspection Rounds - SBA Pro</PageTitle>
 
@@ -72,8 +76,8 @@
                                         }
                                         else
                                         {
-                                            <button class="btn btn-sm btn-secondary" @onclick="() => ViewReport(round.Id)">
-                                                View Report
+                                            <button class="btn btn-sm btn-success" @onclick="() => DownloadReport(round.Id)">
+                                                📄 Download PDF Report
                                             </button>
                                         }
                                     </td>
@@ -109,8 +113,33 @@
             .ToListAsync();
     }
 
-    private void ViewReport(Guid roundId)
+    private async Task DownloadReport(Guid roundId)
     {
-        NavigationManager.NavigateTo($"/Inspector/Report/{roundId}");
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            var round = await context.InspectionRounds
+                .Include(r => r.Site)
+                .Include(r => r.InspectionResults)
+                    .ThenInclude(ir => ir.Object)
+                        .ThenInclude(o => o.Type)
+                .FirstOrDefaultAsync(r => r.Id == roundId);
+
+            if (round == null)
+            {
+                Console.WriteLine("Round not found");
+                return;
+            }
+
+            var pdfBytes = await ReportGenerator.GenerateInspectionReportAsync(round);
+            var base64 = Convert.ToBase64String(pdfBytes);
+            
+            await JSRuntime.InvokeVoidAsync("downloadPdf", base64, $"rapport_{roundId}.pdf");
+        }
+        catch (Exception ex)
+        {
+            // Handle error - could add error message display here
+            Console.WriteLine($"Error downloading report: {ex.Message}");
+        }
     }
 }
