@@ -57,6 +57,9 @@
     private LoginModel loginModel { get; set; } = new();
     private string? errorMessage;
 
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
     private async Task HandleLogin()
     {
         errorMessage = null;
@@ -68,7 +71,7 @@
 
         if (result.Succeeded)
         {
-            NavigationManager.NavigateTo("/", true);
+            NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
         }
         else
         {
