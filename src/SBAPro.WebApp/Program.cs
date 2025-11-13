@@ -49,6 +49,9 @@ builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<IEmailService, MailKitEmailService>();
 builder.Services.AddScoped<IReportGenerator, QuestPdfReportGenerator>();
 
+// Register background services
+builder.Services.AddHostedService<InspectionReminderService>();
+
 var app = builder.Build();
 
 // Initialize database with seed data
