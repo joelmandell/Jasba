@@ -120,6 +120,7 @@
             using var context = await DbFactory.CreateDbContextAsync();
             var round = await context.InspectionRounds
                 .Include(r => r.Site)
+                .Include(r => r.Inspector)
                 .Include(r => r.InspectionResults)
                     .ThenInclude(ir => ir.Object)
                         .ThenInclude(o => o.Type)

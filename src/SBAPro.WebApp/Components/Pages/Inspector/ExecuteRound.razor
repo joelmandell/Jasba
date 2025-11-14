@@ -64,15 +64,15 @@
                             <EditForm Model="inspectionForm" OnValidSubmit="SaveInspection">
                                 <div class="mb-3">
                                     <label class="form-label">Status</label>
-                                    <select class="form-control form-select" @bind="inspectionForm.Status">
-                                        <option value="OK">✓ OK</option>
-                                        <option value="Issue">⚠ Issue Found</option>
-                                        <option value="NotAccessible">🔒 Not Accessible</option>
+                                    <select class="form-control form-select" value="@inspectionForm.Status" @onchange="OnStatusChanged">
+                                        <option value="@InspectionStatus.Ok">✓ OK</option>
+                                        <option value="@InspectionStatus.Deficient">⚠ Issue Found</option>
+                                        <option value="@InspectionStatus.NotAccessible">🔒 Not Accessible</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Comment (optional)</label>
-                                    <textarea class="form-control" rows="3" @bind="inspectionForm.Comment" placeholder="Add any notes or issues..."></textarea>
+                                    <textarea class="form-control" rows="3" value="@inspectionForm.Comment" @onchange="@((ChangeEventArgs e) => inspectionForm.Comment = e.Value?.ToString() ?? string.Empty)" placeholder="Add any notes or issues..."></textarea>
                                 </div>
                                 <button type="submit" class="btn btn-success w-full">Save Inspection</button>
                                 <button type="button" class="btn btn-secondary w-full mt-2" @onclick="ClearSelection">Cancel</button>
@@ -217,7 +217,7 @@
 
     private async Task InitializeMap()
     {
-        if (floorPlan == null) return;
+        if (floorPlan == null || floorPlan.ImageData == null) return;
 
         try
         {
@@ -288,6 +288,14 @@
         selectedObject = null;
         currentResult = null;
         inspectionForm = new InspectionForm { Status = InspectionStatus.Ok };
+    }
+
+    private void OnStatusChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<InspectionStatus>(e.Value?.ToString(), out var status))
+        {
+            inspectionForm.Status = status;
+        }
     }
 
     private async Task SaveInspection()
