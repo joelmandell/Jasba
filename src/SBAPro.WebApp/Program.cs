@@ -1,7 +1,9 @@
 using System.Globalization;
+using EFCoreSecondLevelCacheInterceptor;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
 using SBAPro.Core.Entities;
 using SBAPro.Core.Interfaces;
@@ -37,9 +39,35 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     options.ApplyCurrentCultureToResponseHeaders = true;
 });
 
-// Configure Database
-builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")),
+// Configure EasyCaching In-Memory provider for second level cache
+builder.Services.AddEasyCaching(options =>
+{
+    options.UseInMemory(config =>
+    {
+        config.DBConfig = new EasyCaching.InMemory.InMemoryCachingOptions
+        {
+            ExpirationScanFrequency = 60,
+            SizeLimit = 1000
+        };
+    });
+});
+
+// Register IEFCacheServiceProvider as Singleton FIRST
+builder.Services.AddSingleton<IEFCacheServiceProvider, EFCacheServiceProviderWrapper>();
+const string providerName = "InMemory1";
+
+// Configure EF Core Second Level Cache (must come AFTER IEFCacheServiceProvider registration)
+builder.Services.AddEFSecondLevelCache(options =>
+{
+options.UseEasyCachingCoreProvider(providerName, isHybridCache: false)
+           .UseCacheKeyPrefix("EF_");
+               options.CacheAllQueries(CacheExpirationMode.Sliding, TimeSpan.FromMinutes(30));
+});
+
+// Configure Database with cache interceptor
+builder.Services.AddDbContextFactory<ApplicationDbContext>((serviceProvider, options) =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .AddInterceptors(serviceProvider.GetRequiredService<SecondLevelCacheInterceptor>()),
     ServiceLifetime.Scoped);
 
 // Configure Identity
@@ -170,3 +198,52 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+// Simple wrapper for EasyCaching provider
+public class EFCacheServiceProviderWrapper : IEFCacheServiceProvider
+{
+    private readonly EasyCaching.Core.IEasyCachingProvider _cachingProvider;
+    
+    public EFCacheServiceProviderWrapper(EasyCaching.Core.IEasyCachingProviderFactory easyCachingProviderFactory)
+    {
+        _cachingProvider = easyCachingProviderFactory.GetCachingProvider("DefaultInMemory");
+    }
+    
+    public void ClearAllCachedEntries()
+    {
+        _cachingProvider.Flush();
+    }
+    
+    public EFCachedData? GetValue(EFCacheKey cacheKey, EFCachePolicy cachePolicy)
+    {
+        var value = _cachingProvider.Get<EFCachedData>(cacheKey.KeyHash);
+        return value.HasValue ? value.Value : null;
+    }
+    
+    public void InvalidateCacheDependencies(EFCacheKey cacheKey)
+    {
+        _cachingProvider.Remove(cacheKey.KeyHash);
+    }
+    
+    public void InvalidateCacheDependencies(EFCacheKey cacheKey, EFCachePolicy cachePolicy)
+    {
+        _cachingProvider.Remove(cacheKey.KeyHash);
+    }
+    
+    public void InsertValue(EFCacheKey cacheKey, EFCachedData? value, EFCachePolicy cachePolicy)
+    {
+        if (value != null)
+        {
+            _cachingProvider.Set(
+                cacheKey.KeyHash,
+                value,
+                TimeSpan.FromMinutes(cachePolicy.CacheTimeout?.TotalMinutes ?? 30)
+            );
+        }
+    }
+    
+    public bool StoreMetadata(EFCacheKey cacheKey, EFCachePolicy cachePolicy)
+    {
+        return true;
+    }
+}
