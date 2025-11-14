@@ -23,13 +23,24 @@
 @if (showUploadForm)
 {
     <div class="card mb-3">
-        <div class="card-header">Upload Floor Plan</div>
+        <div class="card-header">@(isReUpload ? "Re-upload Floor Plan Image" : "Upload Floor Plan")</div>
         <div class="card-body">
-            <EditForm Model="newFloorPlan" OnValidSubmit="UploadFloorPlan">
-                <div class="mb-3">
-                    <label class="form-label">Name</label>
-                    <InputText class="form-control" @bind-Value="newFloorPlan.Name" />
-                </div>
+            <EditForm Model="newFloorPlan" OnValidSubmit="@(isReUpload ? ReUploadFloorPlanImage : UploadFloorPlan)">
+                @if (!isReUpload)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <InputText class="form-control" @bind-Value="newFloorPlan.Name" />
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <strong>Re-uploading image for:</strong> @newFloorPlan.Name
+                        <br />
+                        <small>The new image will replace the existing one. All inspection objects will be preserved with their current positions.</small>
+                    </div>
+                }
                 <div class="mb-3">
                     <label class="form-label">Floor Plan Image</label>
                     <InputFile class="form-control" OnChange="HandleFileSelected" accept="image/*" />
@@ -38,8 +49,8 @@
                         <div class="text-info mt-2">@uploadMessage</div>
                     }
                 </div>
-                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">Upload</button>
-                <button type="button" class="btn btn-secondary" @onclick="() => showUploadForm = false">Cancel</button>
+                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">@(isReUpload ? "Update Image" : "Upload")</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelUpload">Cancel</button>
             </EditForm>
         </div>
     </div>
@@ -58,7 +69,10 @@
                     <div class="card-body">
                         <p><strong>Size:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
                         <p><strong>Objects:</strong> @floorPlan.InspectionObjects.Count</p>
-                        <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">Manage Objects</a>
+                        <div class="btn-group" role="group">
+                            <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">Manage Objects</a>
+                            <button class="btn btn-sm btn-warning" @onclick="() => ShowReUploadForm(floorPlan)">Re-upload Image</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,6 +91,7 @@ else
     private List<FloorPlan>? floorPlans;
     private string siteName = "";
     private bool showUploadForm = false;
+    private bool isReUpload = false;
     private FloorPlan newFloorPlan = new();
     private IBrowserFile? uploadedFile;
     private string uploadMessage = "";
@@ -104,10 +119,30 @@ else
     private void ShowUploadForm()
     {
         showUploadForm = true;
+        isReUpload = false;
         newFloorPlan = new FloorPlan();
         uploadedFile = null;
         uploadMessage = "";
         StateHasChanged();
+    }
+
+    private void ShowReUploadForm(FloorPlan floorPlan)
+    {
+        showUploadForm = true;
+        isReUpload = true;
+        newFloorPlan = floorPlan;
+        uploadedFile = null;
+        uploadMessage = "";
+        StateHasChanged();
+    }
+
+    private void CancelUpload()
+    {
+        showUploadForm = false;
+        isReUpload = false;
+        newFloorPlan = new FloorPlan();
+        uploadedFile = null;
+        uploadMessage = "";
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -143,6 +178,35 @@ else
         await context.SaveChangesAsync();
 
         showUploadForm = false;
+        isReUpload = false;
+        await LoadFloorPlans();
+    }
+
+    private async Task ReUploadFloorPlanImage()
+    {
+        if (uploadedFile == null || newFloorPlan.Id == Guid.Empty) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+
+        // Find the existing floor plan
+        var floorPlan = await context.FloorPlans.FindAsync(newFloorPlan.Id);
+        if (floorPlan == null) return;
+
+        // Read new image data
+        var buffer = new byte[uploadedFile.Size];
+        await uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+
+        // Update image data, keeping the same dimensions or use defaults
+        floorPlan.ImageData = buffer;
+        floorPlan.ImageMimeType = uploadedFile.ContentType;
+        // You can optionally update dimensions here if needed
+        // floorPlan.ImageWidth = newWidth;
+        // floorPlan.ImageHeight = newHeight;
+
+        await context.SaveChangesAsync();
+
+        showUploadForm = false;
+        isReUpload = false;
         await LoadFloorPlans();
     }
 

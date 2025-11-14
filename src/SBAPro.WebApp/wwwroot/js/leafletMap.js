@@ -8,11 +8,12 @@ export function initializeMap(mapId, imageUrl, imageWidth, imageHeight) {
             maps[mapId].remove();
         }
 
-        // Create map with simple coordinate system
+        // Create map with simple coordinate system and no attribution control
         const map = L.map(mapId, {
             crs: L.CRS.Simple,
             minZoom: -2,
-            maxZoom: 2
+            maxZoom: 2,
+            attributionControl: false // Remove the Leaflet attribution icon
         });
 
         // Calculate bounds based on image dimensions
