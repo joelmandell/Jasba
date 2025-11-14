@@ -584,4 +584,24 @@
     <value>Alla objekt inspekterade!</value>
   </data>
   
+  <!-- Tenant - Sites -->
+  <data name="AddNewSite" xml:space="preserve">
+    <value>Lägg till ny plats</value>
+  </data>
+  <data name="CreateNewSite" xml:space="preserve">
+    <value>Skapa ny plats</value>
+  </data>
+  <data name="SiteName" xml:space="preserve">
+    <value>Platsnamn</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Adress</value>
+  </data>
+  <data name="LoadingSites" xml:space="preserve">
+    <value>Laddar platser...</value>
+  </data>
+  <data name="ManageFloorPlans" xml:space="preserve">
+    <value>Hantera planlösningar</value>
+  </data>
+  
 </root>

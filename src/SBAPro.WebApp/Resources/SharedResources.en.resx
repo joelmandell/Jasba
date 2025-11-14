@@ -584,4 +584,24 @@
     <value>All objects inspected!</value>
   </data>
   
+  <!-- Tenant - Sites -->
+  <data name="AddNewSite" xml:space="preserve">
+    <value>Add New Site</value>
+  </data>
+  <data name="CreateNewSite" xml:space="preserve">
+    <value>Create New Site</value>
+  </data>
+  <data name="SiteName" xml:space="preserve">
+    <value>Site Name</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="LoadingSites" xml:space="preserve">
+    <value>Loading sites...</value>
+  </data>
+  <data name="ManageFloorPlans" xml:space="preserve">
+    <value>Manage Floor Plans</value>
+  </data>
+  
 </root>

@@ -2,37 +2,39 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
 @using SBAPro.Core.Interfaces
 @attribute [Authorize(Roles = "TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Site Management - SBA Pro</PageTitle>
+<PageTitle>@Localizer["SiteManagement"] - @Localizer["AppName"]</PageTitle>
 
-<h3>Site Management</h3>
+<h3>@Localizer["SiteManagement"]</h3>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Site</button>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">@Localizer["AddNewSite"]</button>
 </div>
 
 @if (showCreateForm)
 {
     <div class="card mb-3">
-        <div class="card-header">Create New Site</div>
+        <div class="card-header">@Localizer["CreateNewSite"]</div>
         <div class="card-body">
             <EditForm Model="newSite" OnValidSubmit="CreateSite">
                 <div class="mb-3">
-                    <label class="form-label">Site Name</label>
+                    <label class="form-label">@Localizer["SiteName"]</label>
                     <InputText class="form-control" @bind-Value="newSite.Name" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Address</label>
+                    <label class="form-label">@Localizer["Address"]</label>
                     <InputText class="form-control" @bind-Value="newSite.Address" />
                 </div>
-                <button type="submit" class="btn btn-success">Create</button>
-                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                <button type="submit" class="btn btn-success">@Localizer["Create"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
     </div>
@@ -49,9 +51,9 @@
                         <strong>@site.Name</strong>
                     </div>
                     <div class="card-body">
-                        <p><strong>Address:</strong> @site.Address</p>
-                        <p><strong>Floor Plans:</strong> @site.FloorPlans.Count</p>
-                        <a href="/Tenant/Sites/@site.Id/FloorPlans" class="btn btn-sm btn-primary">Manage Floor Plans</a>
+                        <p><strong>@Localizer["Address"]:</strong> @site.Address</p>
+                        <p><strong>@Localizer["FloorPlans"]:</strong> @site.FloorPlans.Count</p>
+                        <a href="/Tenant/Sites/@site.Id/FloorPlans" class="btn btn-sm btn-primary">@Localizer["ManageFloorPlans"]</a>
                     </div>
                 </div>
             </div>
@@ -60,7 +62,7 @@
 }
 else
 {
-    <p>Loading sites...</p>
+    <p>@Localizer["LoadingSites"]</p>
 }
 
 @code {
