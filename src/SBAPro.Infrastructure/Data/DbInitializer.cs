@@ -8,8 +8,8 @@ public static class DbInitializer
 {
     public static async Task InitializeAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
     {
-        // Ensure database is created
-        await context.Database.EnsureCreatedAsync();
+        // Apply any pending migrations
+        await context.Database.MigrateAsync();
 
         // Create roles if they don't exist
         string[] roles = { "SystemAdmin", "TenantAdmin", "Inspector" };

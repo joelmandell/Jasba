@@ -61,7 +61,7 @@
                             }
                             else
                             {
-                                <select class="form-control form-select" @bind="selectedFloorPlanId">
+                                <select class="form-control form-select" @onchange="OnFloorPlanSelected">
                                     <option value="">Select a floor plan...</option>
                                     @foreach (var fp in selectedSite.FloorPlans)
                                     {
@@ -127,6 +127,21 @@
         else
         {
             selectedSite = null;
+            selectedFloorPlanId = null;
+            selectedFloorPlan = null;
+        }
+    }
+
+    private void OnFloorPlanSelected(ChangeEventArgs e)
+    {
+        var floorPlanIdStr = e.Value?.ToString();
+        if (Guid.TryParse(floorPlanIdStr, out var floorPlanId))
+        {
+            selectedFloorPlanId = floorPlanId;
+            selectedFloorPlan = selectedSite?.FloorPlans.FirstOrDefault(fp => fp.Id == floorPlanId);
+        }
+        else
+        {
             selectedFloorPlanId = null;
             selectedFloorPlan = null;
         }
