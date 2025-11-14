@@ -1,0 +1,43 @@
+@inherits LayoutComponentBase
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> Localizer
+@inject NavigationManager NavigationManager
+
+<div class="mobile-layout">
+    <div class="mobile-header">
+        <h1>@Localizer["AppName"]</h1>
+        <div class="subtitle">@Localizer["MobileInspection"]</div>
+    </div>
+
+    <div class="mobile-content">
+        @Body
+    </div>
+
+    <div class="mobile-footer">
+        <button @onclick='() => NavigationManager.NavigateTo("/mobile")' class="@GetActiveClass("/mobile")">
+            <span class="icon">🏠</span>
+            <span>@Localizer["Home"]</span>
+        </button>
+        <button @onclick='() => NavigationManager.NavigateTo("/mobile/rounds")' class="@GetActiveClass("/mobile/rounds")">
+            <span class="icon">📋</span>
+            <span>@Localizer["Rounds"]</span>
+        </button>
+        <button @onclick="Logout">
+            <span class="icon">🚪</span>
+            <span>@Localizer["Logout"]</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    private string GetActiveClass(string path)
+    {
+        var currentPath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        return currentPath.StartsWith(path.TrimStart('/')) ? "active" : "";
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/Account/Logout", forceLoad: true);
+    }
+}

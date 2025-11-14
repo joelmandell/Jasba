@@ -1,0 +1,89 @@
+@page "/mobile"
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Inspector,TenantAdmin,SystemAdmin")]
+@layout MobileLayout
+@rendermode InteractiveServer
+@inject IStringLocalizer<SharedResources> Localizer
+@inject NavigationManager NavigationManager
+
+<div class="mobile-home">
+    <div class="welcome-card">
+        <h2>@Localizer["Welcome"]</h2>
+        <p>@Localizer["MobileInspectionDescription"]</p>
+    </div>
+
+    <div class="quick-actions">
+        <button class="action-card" @onclick='() => NavigationManager.NavigateTo("/mobile/rounds")'>
+            <span class="action-icon">📋</span>
+            <h3>@Localizer["MyRounds"]</h3>
+            <p>@Localizer["ViewAndExecuteRounds"]</p>
+        </button>
+    </div>
+</div>
+
+<style>
+    .mobile-home {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .welcome-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .welcome-card h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+
+    .welcome-card p {
+        margin: 0;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .quick-actions {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .action-card {
+        background: white;
+        border: none;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.2s;
+    }
+
+    .action-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .action-icon {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .action-card h3 {
+        margin: 0 0 0.25rem 0;
+        font-size: 1.25rem;
+        color: #1f2937;
+    }
+
+    .action-card p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+</style>

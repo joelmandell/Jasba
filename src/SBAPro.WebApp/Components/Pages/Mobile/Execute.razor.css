@@ -1,0 +1,292 @@
+.mobile-execute {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.loading, .error {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.round-info {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.round-info h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    color: #1f2937;
+}
+
+.progress-bar {
+    height: 0.5rem;
+    background: #e5e7eb;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2563eb;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.objects-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.object-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+}
+
+.object-card:active {
+    transform: scale(0.98);
+}
+
+.object-card.inspected {
+    background: #f9fafb;
+}
+
+.object-status {
+    flex-shrink: 0;
+}
+
+.status-icon {
+    font-size: 2rem;
+    display: block;
+}
+
+.status-icon.pending {
+    opacity: 0.3;
+}
+
+.object-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.object-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.object-type {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.object-comment {
+    margin: 0.5rem 0 0 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+    font-style: italic;
+}
+
+.object-action {
+    flex-shrink: 0;
+    font-size: 1.5rem;
+}
+
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: flex-end;
+    z-index: 1000;
+    animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: white;
+    border-radius: 1rem 1rem 0 0;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #1f2937;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-body {
+    padding: 1.25rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+.status-buttons {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.status-btn {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.status-btn .btn-icon {
+    font-size: 1.5rem;
+}
+
+.status-btn:active {
+    transform: scale(0.98);
+}
+
+.status-btn.active {
+    border-width: 3px;
+}
+
+.status-btn.active.ok {
+    border-color: #10b981;
+    background: #d1fae5;
+}
+
+.status-btn.active.deficient {
+    border-color: #f59e0b;
+    background: #fef3c7;
+}
+
+.status-btn.active.not-accessible {
+    border-color: #ef4444;
+    background: #fee2e2;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.modal-footer {
+    padding: 1.25rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+}
+
+.btn-primary:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}

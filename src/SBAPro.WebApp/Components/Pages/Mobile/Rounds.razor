@@ -1,0 +1,241 @@
+@page "/mobile/rounds"
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Core.Interfaces
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "Inspector,TenantAdmin,SystemAdmin")]
+@layout MobileLayout
+@rendermode InteractiveServer
+@inject IStringLocalizer<SharedResources> Localizer
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="mobile-rounds">
+    <h2>@Localizer["MyRounds"]</h2>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <p>@Localizer["Loading"]...</p>
+        </div>
+    }
+    else if (rounds == null || !rounds.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <p>@Localizer["NoActiveRounds"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="rounds-list">
+            @foreach (var round in rounds)
+            {
+                <div class="round-card" @onclick="() => NavigateToRound(round.Id)">
+                    <div class="round-header">
+                        <h3>@round.Site.Name</h3>
+                        <span class="round-status @GetStatusClass(round.Status)">
+                            @Localizer[round.Status.ToString()]
+                        </span>
+                    </div>
+                    <div class="round-details">
+                        <div class="detail-item">
+                            <span class="detail-icon">📅</span>
+                            <span>@Localizer["Started"]: @round.StartedAt.ToString("yyyy-MM-dd HH:mm")</span>
+                        </div>
+                        @if (round.CompletedAt.HasValue)
+                        {
+                            <div class="detail-item">
+                                <span class="detail-icon">✅</span>
+                                <span>@Localizer["Completed"]: @round.CompletedAt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                            </div>
+                        }
+                        <div class="detail-item">
+                            <span class="detail-icon">📍</span>
+                            <span>@GetProgressText(round)</span>
+                        </div>
+                    </div>
+                    <div class="round-action">
+                        <span class="action-icon">→</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .mobile-rounds {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .mobile-rounds h2 {
+        margin: 0 0 1rem 0;
+        font-size: 1.5rem;
+        color: #1f2937;
+    }
+
+    .loading, .empty-state {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    .rounds-list {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .round-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .round-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .round-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    .round-header h3 {
+        margin: 0;
+        font-size: 1.125rem;
+        color: #1f2937;
+        flex: 1;
+    }
+
+    .round-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+    }
+
+    .round-status.status-InProgress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .round-status.status-Completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .round-status.status-NotStarted {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .round-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .detail-icon {
+        font-size: 1rem;
+    }
+
+    .round-action {
+        position: absolute;
+        right: 1.25rem;
+        bottom: 1.25rem;
+        color: #2563eb;
+        font-size: 1.5rem;
+    }
+</style>
+
+@code {
+    private List<InspectionRound> rounds = new();
+    private bool isLoading = true;
+    private Guid currentUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdClaim = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            currentUserId = userId;
+        }
+
+        await LoadRounds();
+    }
+
+    private async Task LoadRounds()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            rounds = await context.InspectionRounds
+                .Include(r => r.Site)
+                .Include(r => r.InspectionResults)
+                .Where(r => r.InspectorId == currentUserId.ToString())
+                .OrderByDescending(r => r.StartedAt)
+                .ToListAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void NavigateToRound(Guid roundId)
+    {
+        NavigationManager.NavigateTo($"/mobile/execute/{roundId}");
+    }
+
+    private string GetStatusClass(InspectionRoundStatus status)
+    {
+        return $"status-{status}";
+    }
+
+    private string GetProgressText(InspectionRound round)
+    {
+        var inspectedObjects = round.InspectionResults?.Count ?? 0;
+        // To get total objects we'd need to load site floor plans and objects
+        // For now just show inspected count
+        return $"{inspectedObjects} {Localizer["ObjectsInspected"]}";
+    }
+}

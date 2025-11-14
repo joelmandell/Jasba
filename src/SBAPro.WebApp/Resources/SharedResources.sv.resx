@@ -604,4 +604,36 @@
     <value>Hantera planlösningar</value>
   </data>
   
+  <!-- Mobile -->
+  <data name="MobileInspection" xml:space="preserve">
+    <value>Mobil Besiktning</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Välkommen</value>
+  </data>
+  <data name="MobileInspectionDescription" xml:space="preserve">
+    <value>Genomför besiktningar direkt från din mobila enhet</value>
+  </data>
+  <data name="MyRounds" xml:space="preserve">
+    <value>Mina Ronder</value>
+  </data>
+  <data name="ViewAndExecuteRounds" xml:space="preserve">
+    <value>Visa och genomför dina besiktningsronder</value>
+  </data>
+  <data name="NoActiveRounds" xml:space="preserve">
+    <value>Inga aktiva ronder</value>
+  </data>
+  <data name="ObjectsInspected" xml:space="preserve">
+    <value>objekt besiktigade</value>
+  </data>
+  <data name="LoadingInspectionRound" xml:space="preserve">
+    <value>Laddar besiktningsrunda</value>
+  </data>
+  <data name="InspectionRoundNotFound" xml:space="preserve">
+    <value>Besiktningsrunda hittades inte</value>
+  </data>
+  <data name="EnterComment" xml:space="preserve">
+    <value>Ange kommentar...</value>
+  </data>
+  
 </root>

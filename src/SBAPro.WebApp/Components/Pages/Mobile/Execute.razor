@@ -1,0 +1,273 @@
+@page "/mobile/execute/{RoundId:guid}"
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Core.Interfaces
+@using SBAPro.Infrastructure.Data
+@attribute [Authorize(Roles = "Inspector,TenantAdmin,SystemAdmin")]
+@layout MobileLayout
+@rendermode InteractiveServer
+@inject IStringLocalizer<SharedResources> Localizer
+@inject NavigationManager NavigationManager
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+
+<div class="mobile-execute">
+    @if (isLoading)
+    {
+        <div class="loading">
+            <p>@Localizer["LoadingInspectionRound"]...</p>
+        </div>
+    }
+    else if (inspectionRound == null)
+    {
+        <div class="error">
+            <p>@Localizer["InspectionRoundNotFound"]</p>
+        </div>
+    }
+    else
+    {
+        <div class="round-info">
+            <h2>@inspectionRound.Site.Name</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @GetProgressPercentage()%"></div>
+            </div>
+            <p class="progress-text">
+                @inspectedCount / @totalObjects @Localizer["ObjectsInspected"]
+            </p>
+        </div>
+
+        <div class="objects-list">
+            @foreach (var obj in objects)
+            {
+                var result = GetInspectionResult(obj.Id);
+                var isInspected = result != null;
+                
+                <div class="object-card @(isInspected ? "inspected" : "")" @onclick="() => OpenInspectionModal(obj)">
+                    <div class="object-status">
+                        @if (isInspected)
+                        {
+                            <span class="status-icon @GetStatusIconClass(result.Status)">
+                                @GetStatusIcon(result.Status)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-icon pending">⚪</span>
+                        }
+                    </div>
+                    <div class="object-info">
+                        <h3>@obj.Description</h3>
+                        <p class="object-type">@obj.Type.Name</p>
+                        @if (isInspected && !string.IsNullOrWhiteSpace(result.Comment))
+                        {
+                            <p class="object-comment">@result.Comment</p>
+                        }
+                    </div>
+                    <div class="object-action">
+                        <span class="action-icon">@(isInspected ? "✏️" : "▶️")</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (showModal && selectedObject != null)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@selectedObject.Description</h3>
+                <button class="close-btn" @onclick="CloseModal">✕</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>@Localizer["Status"]</label>
+                    <div class="status-buttons">
+                        <button class="status-btn @(inspectionStatus == InspectionStatus.Ok ? "active ok" : "")"
+                                @onclick='() => inspectionStatus = InspectionStatus.Ok'>
+                            <span class="btn-icon">✅</span>
+                            <span>@Localizer["Ok"]</span>
+                        </button>
+                        <button class="status-btn @(inspectionStatus == InspectionStatus.Deficient ? "active deficient" : "")"
+                                @onclick='() => inspectionStatus = InspectionStatus.Deficient'>
+                            <span class="btn-icon">⚠️</span>
+                            <span>@Localizer["Deficient"]</span>
+                        </button>
+                        <button class="status-btn @(inspectionStatus == InspectionStatus.NotAccessible ? "active not-accessible" : "")"
+                                @onclick='() => inspectionStatus = InspectionStatus.NotAccessible'>
+                            <span class="btn-icon">🚫</span>
+                            <span>@Localizer["NotAccessible"]</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>@Localizer["Comment"] (@Localizer["Optional"])</label>
+                    <textarea @bind="inspectionComment" 
+                              rows="4" 
+                              placeholder="@Localizer["EnterComment"]"></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">
+                    @Localizer["Cancel"]
+                </button>
+                <button class="btn btn-primary" @onclick="SaveInspection" disabled="@(inspectionStatus == null)">
+                    @Localizer["SaveInspection"]
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid RoundId { get; set; }
+
+    private InspectionRound? inspectionRound;
+    private List<InspectionObject> objects = new();
+    private List<InspectionResult> results = new();
+    private bool isLoading = true;
+    private int inspectedCount = 0;
+    private int totalObjects = 0;
+
+    private bool showModal = false;
+    private InspectionObject? selectedObject;
+    private InspectionStatus? inspectionStatus;
+    private string? inspectionComment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInspectionRound();
+    }
+
+    private async Task LoadInspectionRound()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            inspectionRound = await context.InspectionRounds
+                .Include(r => r.Site)
+                .ThenInclude(s => s.FloorPlans)
+                .ThenInclude(fp => fp.InspectionObjects)
+                .ThenInclude(o => o.Type)
+                .Include(r => r.InspectionResults)
+                .FirstOrDefaultAsync(r => r.Id == RoundId);
+
+            if (inspectionRound != null)
+            {
+                objects = inspectionRound.Site.FloorPlans
+                    .SelectMany(fp => fp.InspectionObjects)
+                    .OrderBy(o => o.Description)
+                    .ToList();
+
+                results = inspectionRound.InspectionResults.ToList();
+                totalObjects = objects.Count;
+                inspectedCount = results.Count;
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private InspectionResult? GetInspectionResult(Guid objectId)
+    {
+        return results.FirstOrDefault(r => r.ObjectId == objectId);
+    }
+
+    private void OpenInspectionModal(InspectionObject obj)
+    {
+        selectedObject = obj;
+        var existingResult = GetInspectionResult(obj.Id);
+        inspectionStatus = existingResult?.Status;
+        inspectionComment = existingResult?.Comment;
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedObject = null;
+        inspectionStatus = null;
+        inspectionComment = null;
+    }
+
+    private async Task SaveInspection()
+    {
+        if (selectedObject == null || inspectionStatus == null)
+            return;
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            var existingResult = await context.InspectionResults
+                .FirstOrDefaultAsync(r => r.RoundId == RoundId && r.ObjectId == selectedObject.Id);
+
+            if (existingResult != null)
+            {
+                existingResult.Status = inspectionStatus.Value;
+                existingResult.Comment = inspectionComment;
+                existingResult.Timestamp = DateTime.UtcNow;
+            }
+            else
+            {
+                var newResult = new InspectionResult
+                {
+                    Id = Guid.NewGuid(),
+                    RoundId = RoundId,
+                    ObjectId = selectedObject.Id,
+                    Status = inspectionStatus.Value,
+                    Comment = inspectionComment,
+                    Timestamp = DateTime.UtcNow
+                };
+                context.InspectionResults.Add(newResult);
+            }
+
+            await context.SaveChangesAsync();
+            await LoadInspectionRound();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            // Log error
+            Console.WriteLine($"Error saving inspection: {ex.Message}");
+        }
+    }
+
+    private double GetProgressPercentage()
+    {
+        return totalObjects > 0 ? (inspectedCount * 100.0 / totalObjects) : 0;
+    }
+
+    private string GetStatusIconClass(InspectionStatus status)
+    {
+        return status switch
+        {
+            InspectionStatus.Ok => "ok",
+            InspectionStatus.Deficient => "deficient",
+            InspectionStatus.NotAccessible => "not-accessible",
+            _ => ""
+        };
+    }
+
+    private string GetStatusIcon(InspectionStatus status)
+    {
+        return status switch
+        {
+            InspectionStatus.Ok => "✅",
+            InspectionStatus.Deficient => "⚠️",
+            InspectionStatus.NotAccessible => "🚫",
+            _ => "⚪"
+        };
+    }
+}

@@ -604,4 +604,36 @@
     <value>Manage Floor Plans</value>
   </data>
   
+  <!-- Mobile -->
+  <data name="MobileInspection" xml:space="preserve">
+    <value>Mobile Inspection</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Welcome</value>
+  </data>
+  <data name="MobileInspectionDescription" xml:space="preserve">
+    <value>Conduct inspections directly from your mobile device</value>
+  </data>
+  <data name="MyRounds" xml:space="preserve">
+    <value>My Rounds</value>
+  </data>
+  <data name="ViewAndExecuteRounds" xml:space="preserve">
+    <value>View and execute your inspection rounds</value>
+  </data>
+  <data name="NoActiveRounds" xml:space="preserve">
+    <value>No active rounds</value>
+  </data>
+  <data name="ObjectsInspected" xml:space="preserve">
+    <value>objects inspected</value>
+  </data>
+  <data name="LoadingInspectionRound" xml:space="preserve">
+    <value>Loading inspection round</value>
+  </data>
+  <data name="InspectionRoundNotFound" xml:space="preserve">
+    <value>Inspection round not found</value>
+  </data>
+  <data name="EnterComment" xml:space="preserve">
+    <value>Enter comment...</value>
+  </data>
+  
 </root>
