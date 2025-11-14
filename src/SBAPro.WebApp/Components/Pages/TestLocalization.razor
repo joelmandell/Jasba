@@ -1,0 +1,24 @@
+@page "/test-localization"
+@inject IStringLocalizer<SharedResources> Localizer
+
+<h3>Localization Test</h3>
+
+<p>AppName: @Localizer["AppName"]</p>
+<p>Loading: @Localizer["Loading"]</p>
+<p>Save: @Localizer["Save"]</p>
+<p>Cancel: @Localizer["Cancel"]</p>
+<p>Email: @Localizer["Email"]</p>
+
+<hr />
+
+<h4>Debug Info</h4>
+<p>Current Culture: @System.Globalization.CultureInfo.CurrentCulture.Name</p>
+<p>Current UI Culture: @System.Globalization.CultureInfo.CurrentUICulture.Name</p>
+
+<hr />
+
+<h4>All Keys Test</h4>
+@foreach (var key in new[] { "AppName", "Loading", "Save", "Cancel", "Email", "Home", "Dashboard" })
+{
+    <p>@key: "@Localizer[key]" (Missing: @Localizer[key].ResourceNotFound)</p>
+}

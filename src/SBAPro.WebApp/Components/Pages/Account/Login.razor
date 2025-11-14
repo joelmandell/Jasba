@@ -3,15 +3,16 @@
 @using SBAPro.Core.Entities
 @inject SignInManager<ApplicationUser> SignInManager
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Login - SBA Pro</PageTitle>
+<PageTitle>@Localizer["Login"] - @Localizer["AppName"]</PageTitle>
 
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h3>Login to SBA Pro</h3>
+                    <h3>@Localizer["LoginTitle"]</h3>
                 </div>
                 <div class="card-body">
                     @if (!string.IsNullOrEmpty(errorMessage))
@@ -24,27 +25,27 @@
                         <ValidationSummary class="text-danger" />
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label">@Localizer["Email"]</label>
                             <InputText id="email" class="form-control" @bind-Value="loginModel.Email" />
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label">@Localizer["Password"]</label>
                             <InputText id="password" type="password" class="form-control" @bind-Value="loginModel.Password" />
                         </div>
 
                         <div class="mb-3 form-check">
                             <InputCheckbox id="rememberMe" class="form-check-input" @bind-Value="loginModel.RememberMe" />
-                            <label for="rememberMe" class="form-check-label">Remember me</label>
+                            <label for="rememberMe" class="form-check-label">@Localizer["RememberMe"]</label>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="btn btn-primary">@Localizer["Login"]</button>
                     </EditForm>
                 </div>
             </div>
             
             <div class="mt-3 alert alert-info">
-                <strong>Demo Credentials:</strong><br/>
+                <strong>@Localizer["DemoCredentials"]</strong><br/>
                 SystemAdmin: admin@sbapro.com / Admin@123<br/>
                 TenantAdmin: demo@democompany.se / Demo@123
             </div>
@@ -54,11 +55,16 @@
 
 @code {
     [SupplyParameterFromForm]
-    private LoginModel loginModel { get; set; } = new();
+    private LoginModel loginModel { get; set; } = null!;
     private string? errorMessage;
 
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
+
+    protected override void OnInitialized()
+    {
+        loginModel ??= new();
+    }
 
     private async Task HandleLogin()
     {
@@ -75,7 +81,7 @@
         }
         else
         {
-            errorMessage = "Invalid email or password.";
+            errorMessage = Localizer["InvalidEmailOrPassword"];
         }
     }
 

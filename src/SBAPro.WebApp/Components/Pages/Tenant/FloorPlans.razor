@@ -10,47 +10,48 @@
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Floor Plans - SBA Pro</PageTitle>
+<PageTitle>@Localizer["FloorPlans"] - @Localizer["AppName"]</PageTitle>
 
-<h3>Floor Plans for @siteName</h3>
+<h3>@Localizer["FloorPlans"] - @siteName</h3>
 
 <div class="mb-3">
-    <button class="btn btn-secondary" @onclick="GoBack">Back to Sites</button>
-    <button class="btn btn-primary" @onclick="ShowUploadForm">Upload Floor Plan</button>
+    <button class="btn btn-secondary" @onclick="GoBack">@Localizer["BackToSites"]</button>
+    <button class="btn btn-primary" @onclick="ShowUploadForm">@Localizer["UploadFloorPlan"]</button>
 </div>
 
 @if (showUploadForm)
 {
     <div class="card mb-3">
-        <div class="card-header">@(isReUpload ? "Re-upload Floor Plan Image" : "Upload Floor Plan")</div>
+        <div class="card-header">@(isReUpload ? Localizer["ReUploadFloorPlanImage"] : Localizer["UploadFloorPlan"])</div>
         <div class="card-body">
             <EditForm Model="newFloorPlan" OnValidSubmit="@(isReUpload ? ReUploadFloorPlanImage : UploadFloorPlan)">
                 @if (!isReUpload)
                 {
                     <div class="mb-3">
-                        <label class="form-label">Name</label>
+                        <label class="form-label">@Localizer["Name"]</label>
                         <InputText class="form-control" @bind-Value="newFloorPlan.Name" />
                     </div>
                 }
                 else
                 {
                     <div class="alert alert-info">
-                        <strong>Re-uploading image for:</strong> @newFloorPlan.Name
+                        <strong>@Localizer["ReUploadingFor"]</strong> @newFloorPlan.Name
                         <br />
-                        <small>The new image will replace the existing one. All inspection objects will be preserved with their current positions.</small>
+                        <small>@Localizer["ReUploadInfo"]</small>
                     </div>
                 }
                 <div class="mb-3">
-                    <label class="form-label">Floor Plan Image</label>
+                    <label class="form-label">@Localizer["FloorPlanImage"]</label>
                     <InputFile class="form-control" OnChange="HandleFileSelected" accept="image/*" />
                     @if (!string.IsNullOrEmpty(uploadMessage))
                     {
                         <div class="text-info mt-2">@uploadMessage</div>
                     }
                 </div>
-                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">@(isReUpload ? "Update Image" : "Upload")</button>
-                <button type="button" class="btn btn-secondary" @onclick="CancelUpload">Cancel</button>
+                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">@(isReUpload ? Localizer["UpdateImage"] : Localizer["Upload"])</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelUpload">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
     </div>
@@ -67,11 +68,11 @@
                         <strong>@floorPlan.Name</strong>
                     </div>
                     <div class="card-body">
-                        <p><strong>Size:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
-                        <p><strong>Objects:</strong> @floorPlan.InspectionObjects.Count</p>
+                        <p><strong>@Localizer["Size"]:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
+                        <p><strong>@Localizer["Objects"]:</strong> @floorPlan.InspectionObjects.Count</p>
                         <div class="btn-group" role="group">
-                            <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">Manage Objects</a>
-                            <button class="btn btn-sm btn-warning" @onclick="() => ShowReUploadForm(floorPlan)">Re-upload Image</button>
+                            <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">@Localizer["ManageObjects"]</a>
+                            <button class="btn btn-sm btn-warning" @onclick="() => ShowReUploadForm(floorPlan)">@Localizer["ReUploadImage"]</button>
                         </div>
                     </div>
                 </div>
@@ -81,7 +82,7 @@
 }
 else
 {
-    <p>Loading floor plans...</p>
+    <p>@Localizer["Loading"]</p>
 }
 
 @code {
@@ -148,7 +149,7 @@ else
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         uploadedFile = e.File;
-        uploadMessage = $"Selected: {uploadedFile.Name} ({uploadedFile.Size / 1024} KB)";
+        uploadMessage = $"{Localizer["SelectedFile"]} {uploadedFile.Name} ({uploadedFile.Size / 1024} KB)";
     }
 
     private async Task UploadFloorPlan()

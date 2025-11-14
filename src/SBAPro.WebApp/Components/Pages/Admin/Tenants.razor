@@ -3,40 +3,42 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
 @attribute [Authorize(Roles = "SystemAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Tenant Management - SBA Pro</PageTitle>
+<PageTitle>@Localizer["TenantManagement"] - @Localizer["AppName"]</PageTitle>
 
-<h3>Tenant Management</h3>
+<h3>@Localizer["TenantManagement"]</h3>
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="ShowCreateForm">Create New Tenant</button>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">@Localizer["CreateNewTenant"]</button>
 </div>
 
 @if (showCreateForm)
 {
     <div class="card mb-3">
-        <div class="card-header">Create New Tenant</div>
+        <div class="card-header">@Localizer["CreateNewTenant"]</div>
         <div class="card-body">
             <EditForm Model="newTenant" OnValidSubmit="CreateTenant">
                 <div class="mb-3">
-                    <label class="form-label">Tenant Name</label>
+                    <label class="form-label">@Localizer["TenantName"]</label>
                     <InputText class="form-control" @bind-Value="newTenant.Name" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Admin Email</label>
+                    <label class="form-label">@Localizer["AdminEmail"]</label>
                     <InputText class="form-control" @bind-Value="newTenant.AdminEmail" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Admin Password</label>
+                    <label class="form-label">@Localizer["AdminPassword"]</label>
                     <InputText type="password" class="form-control" @bind-Value="newTenant.AdminPassword" />
                 </div>
-                <button type="submit" class="btn btn-success">Create</button>
-                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                <button type="submit" class="btn btn-success">@Localizer["Create"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
     </div>
@@ -47,10 +49,10 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>ID</th>
-                <th>Users</th>
-                <th>Sites</th>
+                <th>@Localizer["Name"]</th>
+                <th>@Localizer["ID"]</th>
+                <th>@Localizer["Users"]</th>
+                <th>@Localizer["Sites"]</th>
             </tr>
         </thead>
         <tbody>

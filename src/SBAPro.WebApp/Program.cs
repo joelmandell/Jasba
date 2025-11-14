@@ -1,10 +1,14 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SBAPro.Core.Entities;
 using SBAPro.Core.Interfaces;
 using SBAPro.Infrastructure.Data;
 using SBAPro.Infrastructure.Services;
 using SBAPro.WebApp.Components;
+using SBAPro.WebApp.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +18,24 @@ builder.Services.AddRazorComponents()
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
+
+// Configure Localization  
+builder.Services.AddLocalization();
+
+// Configure supported cultures - Swedish as default
+var supportedCultures = new[]
+{
+    new CultureInfo("sv"),
+    new CultureInfo("en")
+};
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    options.DefaultRequestCulture = new RequestCulture("sv");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+    options.ApplyCurrentCultureToResponseHeaders = true;
+});
 
 // Configure Database
 builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
@@ -83,6 +105,9 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Use Request Localization
+app.UseRequestLocalization();
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common -->
+  <data name="AppName" xml:space="preserve">
+    <value>SBA Pro</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Laddar...</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Spara</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Avbryt</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Ta bort</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Skapa</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Ladda upp</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Tillbaka</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Stäng</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Namn</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Beskrivning</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>E-post</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Lösenord</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Bekräfta lösenord</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Skicka</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Nej</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Home" xml:space="preserve">
+    <value>Hem</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Logga in</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logga ut</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Registrera</value>
+  </data>
+  
+  <!-- Admin -->
+  <data name="Admin" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="Tenants" xml:space="preserve">
+    <value>Hyresgäster</value>
+  </data>
+  <data name="ManageTenants" xml:space="preserve">
+    <value>Hantera hyresgäster</value>
+  </data>
+  
+  <!-- Tenant -->
+  <data name="Sites" xml:space="preserve">
+    <value>Platser</value>
+  </data>
+  <data name="MySites" xml:space="preserve">
+    <value>Mina platser</value>
+  </data>
+  <data name="FloorPlans" xml:space="preserve">
+    <value>Planlösningar</value>
+  </data>
+  <data name="ObjectTypes" xml:space="preserve">
+    <value>Objekttyper</value>
+  </data>
+  <data name="InspectionObjectTypes" xml:space="preserve">
+    <value>Inspektionsobjekttyper</value>
+  </data>
+  
+  <!-- Inspector -->
+  <data name="InspectionRounds" xml:space="preserve">
+    <value>Inspektionsrundor</value>
+  </data>
+  <data name="StartInspection" xml:space="preserve">
+    <value>Starta inspektion</value>
+  </data>
+  <data name="MyInspections" xml:space="preserve">
+    <value>Mina inspektioner</value>
+  </data>
+  
+  <!-- Account -->
+  <data name="LoginTitle" xml:space="preserve">
+    <value>Logga in</value>
+  </data>
+  <data name="RegisterTitle" xml:space="preserve">
+    <value>Registrera nytt konto</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Kom ihåg mig</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Åtkomst nekad</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>Du har inte behörighet att komma åt denna sida.</value>
+  </data>
+  
+  <!-- Tenant Management -->
+  <data name="TenantName" xml:space="preserve">
+    <value>Hyresgästnamn</value>
+  </data>
+  <data name="CompanyName" xml:space="preserve">
+    <value>Företagsnamn</value>
+  </data>
+  <data name="ContactEmail" xml:space="preserve">
+    <value>Kontakt e-post</value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>Administratörs e-post</value>
+  </data>
+  <data name="AdminPassword" xml:space="preserve">
+    <value>Administratörs lösenord</value>
+  </data>
+  <data name="CreateTenant" xml:space="preserve">
+    <value>Skapa hyresgäst</value>
+  </data>
+  <data name="CreateNewTenant" xml:space="preserve">
+    <value>Skapa ny hyresgäst</value>
+  </data>
+  
+  <!-- Sites -->
+  <data name="SiteName" xml:space="preserve">
+    <value>Platsnamn</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Adress</value>
+  </data>
+  <data name="CreateSite" xml:space="preserve">
+    <value>Skapa plats</value>
+  </data>
+  <data name="CreateNewSite" xml:space="preserve">
+    <value>Skapa ny plats</value>
+  </data>
+  <data name="ManageFloorPlans" xml:space="preserve">
+    <value>Hantera planlösningar</value>
+  </data>
+  <data name="BackToSites" xml:space="preserve">
+    <value>Tillbaka till platser</value>
+  </data>
+  
+  <!-- Floor Plans -->
+  <data name="FloorPlan" xml:space="preserve">
+    <value>Planlösning</value>
+  </data>
+  <data name="UploadFloorPlan" xml:space="preserve">
+    <value>Ladda upp planlösning</value>
+  </data>
+  <data name="FloorPlanImage" xml:space="preserve">
+    <value>Planlösningsbild</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Storlek</value>
+  </data>
+  <data name="Objects" xml:space="preserve">
+    <value>Objekt</value>
+  </data>
+  <data name="ManageObjects" xml:space="preserve">
+    <value>Hantera objekt</value>
+  </data>
+  <data name="ReUploadImage" xml:space="preserve">
+    <value>Ladda upp ny bild</value>
+  </data>
+  <data name="ReUploadFloorPlanImage" xml:space="preserve">
+    <value>Ladda upp ny planlösningsbild</value>
+  </data>
+  <data name="ReUploadInfo" xml:space="preserve">
+    <value>Den nya bilden ersätter den befintliga. Alla inspektionsobjekt kommer att bevaras med sina nuvarande positioner.</value>
+  </data>
+  <data name="ReUploadingFor" xml:space="preserve">
+    <value>Laddar upp ny bild för:</value>
+  </data>
+  <data name="UpdateImage" xml:space="preserve">
+    <value>Uppdatera bild</value>
+  </data>
+  <data name="SelectedFile" xml:space="preserve">
+    <value>Vald:</value>
+  </data>
+  
+  <!-- Floor Plan Editor -->
+  <data name="EditFloorPlan" xml:space="preserve">
+    <value>Redigera planlösning</value>
+  </data>
+  <data name="ClickToPlaceObjects" xml:space="preserve">
+    <value>Klicka på kartan för att placera inspektionsobjekt</value>
+  </data>
+  <data name="AddInspectionObject" xml:space="preserve">
+    <value>Lägg till inspektionsobjekt</value>
+  </data>
+  <data name="ObjectType" xml:space="preserve">
+    <value>Objekttyp</value>
+  </data>
+  <data name="SelectType" xml:space="preserve">
+    <value>Välj typ...</value>
+  </data>
+  <data name="NoObjectsYet" xml:space="preserve">
+    <value>Inga objekt ännu. Klicka på kartan för att lägga till ett.</value>
+  </data>
+  
+  <!-- Object Types -->
+  <data name="AddNewType" xml:space="preserve">
+    <value>Lägg till ny typ</value>
+  </data>
+  <data name="CreateNewObjectType" xml:space="preserve">
+    <value>Skapa ny objekttyp</value>
+  </data>
+  <data name="EditObjectType" xml:space="preserve">
+    <value>Redigera objekttyp</value>
+  </data>
+  <data name="Icon" xml:space="preserve">
+    <value>Ikon</value>
+  </data>
+  <data name="IconPlaceholder" xml:space="preserve">
+    <value>emoji eller symbol</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Spara ändringar</value>
+  </data>
+  <data name="DeleteConfirm" xml:space="preserve">
+    <value>Är du säker på att du vill ta bort '{0}'?</value>
+  </data>
+  <data name="CannotDeleteInUse" xml:space="preserve">
+    <value>Kan inte ta bort denna objekttyp eftersom den används av {0} inspektionsobjekt. Ta bort dessa objekt först.</value>
+  </data>
+  <data name="ObjectTypeCreated" xml:space="preserve">
+    <value>Objekttyp '{0}' skapades.</value>
+  </data>
+  <data name="ObjectTypeUpdated" xml:space="preserve">
+    <value>Objekttyp '{0}' uppdaterades.</value>
+  </data>
+  <data name="ObjectTypeDeleted" xml:space="preserve">
+    <value>Objekttyp '{0}' togs bort.</value>
+  </data>
+  
+  <!-- Inspection Rounds -->
+  <data name="StartNewRound" xml:space="preserve">
+    <value>Starta ny runda</value>
+  </data>
+  <data name="SelectSite" xml:space="preserve">
+    <value>Välj plats</value>
+  </data>
+  <data name="SelectSitePlaceholder" xml:space="preserve">
+    <value>Välj en plats...</value>
+  </data>
+  <data name="SelectFloorPlan" xml:space="preserve">
+    <value>Välj planlösning</value>
+  </data>
+  <data name="SelectFloorPlanPlaceholder" xml:space="preserve">
+    <value>Välj en planlösning...</value>
+  </data>
+  <data name="NoSitesAvailable" xml:space="preserve">
+    <value>Inga platser tillgängliga.</value>
+  </data>
+  <data name="NoFloorPlansAvailable" xml:space="preserve">
+    <value>Denna plats har inga planlösningar. Lägg till planlösningar först.</value>
+  </data>
+  <data name="FloorPlanHasObjects" xml:space="preserve">
+    <value>Denna planlösning har {0} inspektionsobjekt.</value>
+  </data>
+  <data name="StartRound" xml:space="preserve">
+    <value>Starta runda</value>
+  </data>
+  <data name="ExecuteRound" xml:space="preserve">
+    <value>Utför runda</value>
+  </data>
+  <data name="CompleteRound" xml:space="preserve">
+    <value>Slutför runda</value>
+  </data>
+  <data name="InspectionRound" xml:space="preserve">
+    <value>Inspektionsrunda</value>
+  </data>
+  <data name="InspectedBy" xml:space="preserve">
+    <value>Inspekterad av</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Kommentar</value>
+  </data>
+  <data name="AddComment" xml:space="preserve">
+    <value>Lägg till kommentar...</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="NotOK" xml:space="preserve">
+    <value>Ej OK</value>
+  </data>
+  <data name="NeedsAction" xml:space="preserve">
+    <value>Kräver åtgärd</value>
+  </data>
+  <data name="GenerateReport" xml:space="preserve">
+    <value>Generera rapport</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="SuccessfullyCreated" xml:space="preserve">
+    <value>Skapades framgångsrikt</value>
+  </data>
+  <data name="SuccessfullyUpdated" xml:space="preserve">
+    <value>Uppdaterades framgångsrikt</value>
+  </data>
+  <data name="SuccessfullyDeleted" xml:space="preserve">
+    <value>Togs bort framgångsrikt</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>Ett fel uppstod</value>
+  </data>
+  <data name="InvalidEmailOrPassword" xml:space="preserve">
+    <value>Ogiltig e-postadress eller lösenord.</value>
+  </data>
+  <data name="DemoCredentials" xml:space="preserve">
+    <value>Demo-inloggningsuppgifter:</value>
+  </data>
+  
+  <!-- Admin - Tenant Management -->
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Hyresgästhantering</value>
+  </data>
+  <data name="CreateNewTenant" xml:space="preserve">
+    <value>Skapa ny hyresgäst</value>
+  </data>
+  <data name="TenantName" xml:space="preserve">
+    <value>Hyresgästnamn</value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>Admin e-post</value>
+  </data>
+  <data name="AdminPassword" xml:space="preserve">
+    <value>Admin lösenord</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Användare</value>
+  </data>
+  
+  <!-- Inspector - Start Round -->
+  <data name="StartInspectionRound" xml:space="preserve">
+    <value>Starta inspektionsrunda</value>
+  </data>
+  <data name="StartNewInspectionRound" xml:space="preserve">
+    <value>Starta ny inspektionsrunda</value>
+  </data>
+  <data name="SelectSiteAndFloorPlan" xml:space="preserve">
+    <value>Välj plats och planlösning</value>
+  </data>
+  <data name="LoadingSites" xml:space="preserve">
+    <value>Laddar platser...</value>
+  </data>
+  <data name="NoSitesAvailable" xml:space="preserve">
+    <value>Inga platser tillgängliga. Kontakta din administratör för att ställa in platser och planlösningar.</value>
+  </data>
+  <data name="SelectASite" xml:space="preserve">
+    <value>Välj en plats...</value>
+  </data>
+  <data name="SelectAFloorPlan" xml:space="preserve">
+    <value>Välj en planlösning...</value>
+  </data>
+  <data name="NoFloorPlans" xml:space="preserve">
+    <value>Denna plats har inga planlösningar. Be din administratör att ladda upp planlösningar.</value>
+  </data>
+  <data name="ReadyToStart" xml:space="preserve">
+    <value>Redo att starta!</value>
+  </data>
+  <data name="ThisFloorPlanHasObjects" xml:space="preserve">
+    <value>Denna planlösning har {0} inspektionsobjekt.</value>
+  </data>
+  <data name="StartRound" xml:space="preserve">
+    <value>Starta runda</value>
+  </data>
+  <data name="Objects" xml:space="preserve">
+    <value>objekt</value>
+  </data>
+  
+  <!-- Home Page -->
+  <data name="WelcomeTo" xml:space="preserve">
+    <value>Välkommen till</value>
+  </data>
+  <data name="SystematicFireSafety" xml:space="preserve">
+    <value>Systematiskt Brandskyddsarbete - Professionellt Brandsäkerhetssystem</value>
+  </data>
+  <data name="LoggedInAs" xml:space="preserve">
+    <value>Inloggad som:</value>
+  </data>
+  <data name="Tenant" xml:space="preserve">
+    <value>Hyresgäst:</value>
+  </data>
+  <data name="SystemAdministrator" xml:space="preserve">
+    <value>Systemadministratör</value>
+  </data>
+  <data name="SystemAdministration" xml:space="preserve">
+    <value>Systemadministration</value>
+  </data>
+  <data name="ManageTenantsAndSystem" xml:space="preserve">
+    <value>Hantera hyresgäster och systemkonfiguration</value>
+  </data>
+  <data name="ManageTenants" xml:space="preserve">
+    <value>Hantera hyresgäster</value>
+  </data>
+  <data name="SiteManagement" xml:space="preserve">
+    <value>Platshantering</value>
+  </data>
+  <data name="ManageSitesAndFloorPlans" xml:space="preserve">
+    <value>Hantera dina platser och planlösningar</value>
+  </data>
+  <data name="ManageSites" xml:space="preserve">
+    <value>Hantera platser</value>
+  </data>
+  <data name="Inspections" xml:space="preserve">
+    <value>Inspektioner</value>
+  </data>
+  <data name="PerformAndViewInspections" xml:space="preserve">
+    <value>Utför och visa inspektionsrundor</value>
+  </data>
+  <data name="ViewInspections" xml:space="preserve">
+    <value>Visa inspektioner</value>
+  </data>
+  <data name="PleaseLoginToContinue" xml:space="preserve">
+    <value>Vänligen logga in för att fortsätta.</value>
+  </data>
+  <data name="AboutSBAPro" xml:space="preserve">
+    <value>Om SBA Pro</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>SBA Pro är ett omfattande, molnbaserat SaaS-system för hantering av Systematiskt Brandskyddsarbete (SBA). Det hjälper fastighetsägare och operatörer att följa svensk lagstiftning (LSO 2003:778).</value>
+  </data>
+  <data name="MultiTenantArchitecture" xml:space="preserve">
+    <value>Multitenantarkitektur för säker dataisolering</value>
+  </data>
+  <data name="InteractiveFloorPlan" xml:space="preserve">
+    <value>Interaktiv planlösningsvisualisering med Leaflet.js</value>
+  </data>
+  <data name="AutomatedReporting" xml:space="preserve">
+    <value>Automatiserad inspektionsrapportering och påminnelser</value>
+  </data>
+  <data name="ProfessionalPDFReports" xml:space="preserve">
+    <value>Professionella PDF-rapporter med QuestPDF</value>
+  </data>
+  <data name="OfflineCapable" xml:space="preserve">
+    <value>Offlinekompatibel för inspektioner i områden med dålig anslutning</value>
+  </data>
+  
+</root>

@@ -1,18 +1,16 @@
 @page "/Account/AccessDenied"
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Access Denied</PageTitle>
+<PageTitle>@Localizer["AccessDenied"]</PageTitle>
 
 <div class="container mx-auto max-w-md mt-10">
     <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <h2 class="text-2xl font-bold mb-6 text-red-600">Access Denied</h2>
-        <p class="mb-4">You do not have permission to access this page.</p>
-        <p class="mb-4 text-gray-600">
-            This page requires a specific role or permissions that your account does not have.
-        </p>
+        <h2 class="text-2xl font-bold mb-6 text-red-600">@Localizer["AccessDenied"]</h2>
+        <p class="mb-4">@Localizer["AccessDeniedMessage"]</p>
         <div class="mt-6">
-            <a href="/" class="text-blue-500 hover:text-blue-700">Return to Home</a>
+            <a href="/" class="text-blue-500 hover:text-blue-700">@Localizer["Home"]</a>
             <span class="mx-2">|</span>
-            <a href="/Account/Logout" class="text-blue-500 hover:text-blue-700">Logout</a>
+            <a href="/Account/Logout" class="text-blue-500 hover:text-blue-700">@Localizer["Logout"]</a>
         </div>
     </div>
 </div>

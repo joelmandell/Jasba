@@ -1,6 +1,8 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject IStringLocalizer<SharedResources> Localizer
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">🧯 SBA Pro</a>
+        <a class="navbar-brand" href="">🧯 @Localizer["AppName"]</a>
     </div>
 </div>
 
@@ -10,14 +12,14 @@
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> @Localizer["Dashboard"]
             </NavLink>
         </div>
 
         <AuthorizeView Roles="SystemAdmin">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="Admin/Tenants">
-                    <span class="bi bi-building" aria-hidden="true"></span> Tenants
+                    <span class="bi bi-building" aria-hidden="true"></span> @Localizer["Tenants"]
                 </NavLink>
             </div>
         </AuthorizeView>
@@ -25,12 +27,12 @@
         <AuthorizeView Roles="TenantAdmin">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="Tenant/Sites">
-                    <span class="bi bi-geo-alt" aria-hidden="true"></span> Sites
+                    <span class="bi bi-geo-alt" aria-hidden="true"></span> @Localizer["Sites"]
                 </NavLink>
             </div>
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="Tenant/ObjectTypes">
-                    <span class="bi bi-tag" aria-hidden="true"></span> Object Types
+                    <span class="bi bi-tag" aria-hidden="true"></span> @Localizer["ObjectTypes"]
                 </NavLink>
             </div>
         </AuthorizeView>
@@ -38,7 +40,7 @@
         <AuthorizeView Roles="Inspector,TenantAdmin">
             <div class="nav-item px-3">
                 <NavLink class="nav-link" href="Inspector/Rounds">
-                    <span class="bi bi-clipboard-check" aria-hidden="true"></span> Inspection Rounds
+                    <span class="bi bi-clipboard-check" aria-hidden="true"></span> @Localizer["InspectionRounds"]
                 </NavLink>
             </div>
         </AuthorizeView>
@@ -49,14 +51,14 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Logout">
-                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> Logout
+                        <span class="bi bi-box-arrow-right" aria-hidden="true"></span> @Localizer["Logout"]
                     </NavLink>
                 </div>
             </Authorized>
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Login
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> @Localizer["Login"]
                     </NavLink>
                 </div>
             </NotAuthorized>

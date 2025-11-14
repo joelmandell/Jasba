@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common -->
+  <data name="AppName" xml:space="preserve">
+    <value>SBA Pro</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Upload" xml:space="preserve">
+    <value>Upload</value>
+  </data>
+  <data name="Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="ConfirmPassword" xml:space="preserve">
+    <value>Confirm Password</value>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Submit</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="Register" xml:space="preserve">
+    <value>Register</value>
+  </data>
+  
+  <!-- Admin -->
+  <data name="Admin" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="Tenants" xml:space="preserve">
+    <value>Tenants</value>
+  </data>
+  <data name="ManageTenants" xml:space="preserve">
+    <value>Manage Tenants</value>
+  </data>
+  
+  <!-- Tenant -->
+  <data name="Sites" xml:space="preserve">
+    <value>Sites</value>
+  </data>
+  <data name="MySites" xml:space="preserve">
+    <value>My Sites</value>
+  </data>
+  <data name="FloorPlans" xml:space="preserve">
+    <value>Floor Plans</value>
+  </data>
+  <data name="ObjectTypes" xml:space="preserve">
+    <value>Object Types</value>
+  </data>
+  <data name="InspectionObjectTypes" xml:space="preserve">
+    <value>Inspection Object Types</value>
+  </data>
+  
+  <!-- Inspector -->
+  <data name="InspectionRounds" xml:space="preserve">
+    <value>Inspection Rounds</value>
+  </data>
+  <data name="StartInspection" xml:space="preserve">
+    <value>Start Inspection</value>
+  </data>
+  <data name="MyInspections" xml:space="preserve">
+    <value>My Inspections</value>
+  </data>
+  
+  <!-- Account -->
+  <data name="LoginTitle" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="RegisterTitle" xml:space="preserve">
+    <value>Register New Account</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Remember me</value>
+  </data>
+  <data name="AccessDenied" xml:space="preserve">
+    <value>Access Denied</value>
+  </data>
+  <data name="AccessDeniedMessage" xml:space="preserve">
+    <value>You do not have permission to access this page.</value>
+  </data>
+  
+  <!-- Tenant Management -->
+  <data name="TenantName" xml:space="preserve">
+    <value>Tenant Name</value>
+  </data>
+  <data name="CompanyName" xml:space="preserve">
+    <value>Company Name</value>
+  </data>
+  <data name="ContactEmail" xml:space="preserve">
+    <value>Contact Email</value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>Admin Email</value>
+  </data>
+  <data name="AdminPassword" xml:space="preserve">
+    <value>Admin Password</value>
+  </data>
+  <data name="CreateTenant" xml:space="preserve">
+    <value>Create Tenant</value>
+  </data>
+  <data name="CreateNewTenant" xml:space="preserve">
+    <value>Create New Tenant</value>
+  </data>
+  
+  <!-- Sites -->
+  <data name="SiteName" xml:space="preserve">
+    <value>Site Name</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="CreateSite" xml:space="preserve">
+    <value>Create Site</value>
+  </data>
+  <data name="CreateNewSite" xml:space="preserve">
+    <value>Create New Site</value>
+  </data>
+  <data name="ManageFloorPlans" xml:space="preserve">
+    <value>Manage Floor Plans</value>
+  </data>
+  <data name="BackToSites" xml:space="preserve">
+    <value>Back to Sites</value>
+  </data>
+  
+  <!-- Floor Plans -->
+  <data name="FloorPlan" xml:space="preserve">
+    <value>Floor Plan</value>
+  </data>
+  <data name="UploadFloorPlan" xml:space="preserve">
+    <value>Upload Floor Plan</value>
+  </data>
+  <data name="FloorPlanImage" xml:space="preserve">
+    <value>Floor Plan Image</value>
+  </data>
+  <data name="Size" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Objects" xml:space="preserve">
+    <value>Objects</value>
+  </data>
+  <data name="ManageObjects" xml:space="preserve">
+    <value>Manage Objects</value>
+  </data>
+  <data name="ReUploadImage" xml:space="preserve">
+    <value>Re-upload Image</value>
+  </data>
+  <data name="ReUploadFloorPlanImage" xml:space="preserve">
+    <value>Re-upload Floor Plan Image</value>
+  </data>
+  <data name="ReUploadInfo" xml:space="preserve">
+    <value>The new image will replace the existing one. All inspection objects will be preserved with their current positions.</value>
+  </data>
+  <data name="ReUploadingFor" xml:space="preserve">
+    <value>Re-uploading image for:</value>
+  </data>
+  <data name="UpdateImage" xml:space="preserve">
+    <value>Update Image</value>
+  </data>
+  <data name="SelectedFile" xml:space="preserve">
+    <value>Selected:</value>
+  </data>
+  
+  <!-- Floor Plan Editor -->
+  <data name="EditFloorPlan" xml:space="preserve">
+    <value>Edit Floor Plan</value>
+  </data>
+  <data name="ClickToPlaceObjects" xml:space="preserve">
+    <value>Click on the map to place inspection objects</value>
+  </data>
+  <data name="AddInspectionObject" xml:space="preserve">
+    <value>Add Inspection Object</value>
+  </data>
+  <data name="ObjectType" xml:space="preserve">
+    <value>Object Type</value>
+  </data>
+  <data name="SelectType" xml:space="preserve">
+    <value>Select type...</value>
+  </data>
+  <data name="NoObjectsYet" xml:space="preserve">
+    <value>No objects yet. Click on the map to add one.</value>
+  </data>
+  
+  <!-- Object Types -->
+  <data name="AddNewType" xml:space="preserve">
+    <value>Add New Type</value>
+  </data>
+  <data name="CreateNewObjectType" xml:space="preserve">
+    <value>Create New Object Type</value>
+  </data>
+  <data name="EditObjectType" xml:space="preserve">
+    <value>Edit Object Type</value>
+  </data>
+  <data name="Icon" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="IconPlaceholder" xml:space="preserve">
+    <value>emoji or symbol</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Save Changes</value>
+  </data>
+  <data name="DeleteConfirm" xml:space="preserve">
+    <value>Are you sure you want to delete '{0}'?</value>
+  </data>
+  <data name="CannotDeleteInUse" xml:space="preserve">
+    <value>Cannot delete this object type because it is used by {0} inspection object(s). Remove those objects first.</value>
+  </data>
+  <data name="ObjectTypeCreated" xml:space="preserve">
+    <value>Object type '{0}' created successfully.</value>
+  </data>
+  <data name="ObjectTypeUpdated" xml:space="preserve">
+    <value>Object type '{0}' updated successfully.</value>
+  </data>
+  <data name="ObjectTypeDeleted" xml:space="preserve">
+    <value>Object type '{0}' deleted successfully.</value>
+  </data>
+  
+  <!-- Inspection Rounds -->
+  <data name="StartNewRound" xml:space="preserve">
+    <value>Start New Round</value>
+  </data>
+  <data name="SelectSite" xml:space="preserve">
+    <value>Select Site</value>
+  </data>
+  <data name="SelectSitePlaceholder" xml:space="preserve">
+    <value>Select a site...</value>
+  </data>
+  <data name="SelectFloorPlan" xml:space="preserve">
+    <value>Select Floor Plan</value>
+  </data>
+  <data name="SelectFloorPlanPlaceholder" xml:space="preserve">
+    <value>Select a floor plan...</value>
+  </data>
+  <data name="NoSitesAvailable" xml:space="preserve">
+    <value>No sites available.</value>
+  </data>
+  <data name="NoFloorPlansAvailable" xml:space="preserve">
+    <value>This site has no floor plans. Add floor plans first.</value>
+  </data>
+  <data name="FloorPlanHasObjects" xml:space="preserve">
+    <value>This floor plan has {0} inspection objects.</value>
+  </data>
+  <data name="StartRound" xml:space="preserve">
+    <value>Start Round</value>
+  </data>
+  <data name="ExecuteRound" xml:space="preserve">
+    <value>Execute Round</value>
+  </data>
+  <data name="CompleteRound" xml:space="preserve">
+    <value>Complete Round</value>
+  </data>
+  <data name="InspectionRound" xml:space="preserve">
+    <value>Inspection Round</value>
+  </data>
+  <data name="InspectedBy" xml:space="preserve">
+    <value>Inspected by</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Comment" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="AddComment" xml:space="preserve">
+    <value>Add comment...</value>
+  </data>
+  <data name="OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="NotOK" xml:space="preserve">
+    <value>Not OK</value>
+  </data>
+  <data name="NeedsAction" xml:space="preserve">
+    <value>Needs Action</value>
+  </data>
+  <data name="GenerateReport" xml:space="preserve">
+    <value>Generate Report</value>
+  </data>
+  
+  <!-- Messages -->
+  <data name="SuccessfullyCreated" xml:space="preserve">
+    <value>Successfully Created</value>
+  </data>
+  <data name="SuccessfullyUpdated" xml:space="preserve">
+    <value>Successfully Updated</value>
+  </data>
+  <data name="SuccessfullyDeleted" xml:space="preserve">
+    <value>Successfully Deleted</value>
+  </data>
+  <data name="ErrorOccurred" xml:space="preserve">
+    <value>An error occurred</value>
+  </data>
+  <data name="InvalidEmailOrPassword" xml:space="preserve">
+    <value>Invalid email or password.</value>
+  </data>
+  <data name="DemoCredentials" xml:space="preserve">
+    <value>Demo credentials:</value>
+  </data>
+  
+  <!-- Admin - Tenant Management -->
+  <data name="TenantManagement" xml:space="preserve">
+    <value>Tenant Management</value>
+  </data>
+  <data name="CreateNewTenant" xml:space="preserve">
+    <value>Create New Tenant</value>
+  </data>
+  <data name="TenantName" xml:space="preserve">
+    <value>Tenant Name</value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>Admin Email</value>
+  </data>
+  <data name="AdminPassword" xml:space="preserve">
+    <value>Admin Password</value>
+  </data>
+  <data name="ID" xml:space="preserve">
+    <value>ID</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  
+  <!-- Inspector - Start Round -->
+  <data name="StartInspectionRound" xml:space="preserve">
+    <value>Start Inspection Round</value>
+  </data>
+  <data name="StartNewInspectionRound" xml:space="preserve">
+    <value>Start New Inspection Round</value>
+  </data>
+  <data name="SelectSiteAndFloorPlan" xml:space="preserve">
+    <value>Select Site and Floor Plan</value>
+  </data>
+  <data name="LoadingSites" xml:space="preserve">
+    <value>Loading sites...</value>
+  </data>
+  <data name="NoSitesAvailable" xml:space="preserve">
+    <value>No sites available. Contact your administrator to set up sites and floor plans.</value>
+  </data>
+  <data name="SelectASite" xml:space="preserve">
+    <value>Select a site...</value>
+  </data>
+  <data name="SelectAFloorPlan" xml:space="preserve">
+    <value>Select a floor plan...</value>
+  </data>
+  <data name="NoFloorPlans" xml:space="preserve">
+    <value>This site has no floor plans. Ask your administrator to upload floor plans.</value>
+  </data>
+  <data name="ReadyToStart" xml:space="preserve">
+    <value>Ready to start!</value>
+  </data>
+  <data name="ThisFloorPlanHasObjects" xml:space="preserve">
+    <value>This floor plan has {0} inspection objects.</value>
+  </data>
+  <data name="StartRound" xml:space="preserve">
+    <value>Start Round</value>
+  </data>
+  <data name="Objects" xml:space="preserve">
+    <value>objects</value>
+  </data>
+  
+  <!-- Home Page -->
+  <data name="WelcomeTo" xml:space="preserve">
+    <value>Welcome to</value>
+  </data>
+  <data name="SystematicFireSafety" xml:space="preserve">
+    <value>Systematiskt Brandskyddsarbete - Professional Fire Safety Management System</value>
+  </data>
+  <data name="LoggedInAs" xml:space="preserve">
+    <value>Logged in as:</value>
+  </data>
+  <data name="Tenant" xml:space="preserve">
+    <value>Tenant:</value>
+  </data>
+  <data name="SystemAdministrator" xml:space="preserve">
+    <value>System Administrator</value>
+  </data>
+  <data name="SystemAdministration" xml:space="preserve">
+    <value>System Administration</value>
+  </data>
+  <data name="ManageTenantsAndSystem" xml:space="preserve">
+    <value>Manage tenants and system configuration</value>
+  </data>
+  <data name="ManageTenants" xml:space="preserve">
+    <value>Manage Tenants</value>
+  </data>
+  <data name="SiteManagement" xml:space="preserve">
+    <value>Site Management</value>
+  </data>
+  <data name="ManageSitesAndFloorPlans" xml:space="preserve">
+    <value>Manage your sites and floor plans</value>
+  </data>
+  <data name="ManageSites" xml:space="preserve">
+    <value>Manage Sites</value>
+  </data>
+  <data name="Inspections" xml:space="preserve">
+    <value>Inspections</value>
+  </data>
+  <data name="PerformAndViewInspections" xml:space="preserve">
+    <value>Perform and view inspection rounds</value>
+  </data>
+  <data name="ViewInspections" xml:space="preserve">
+    <value>View Inspections</value>
+  </data>
+  <data name="PleaseLoginToContinue" xml:space="preserve">
+    <value>Please login to continue.</value>
+  </data>
+  <data name="AboutSBAPro" xml:space="preserve">
+    <value>About SBA Pro</value>
+  </data>
+  <data name="AboutDescription" xml:space="preserve">
+    <value>SBA Pro is a comprehensive, cloud-based SaaS system for managing Systematic Fire Protection Work (SBA). It helps property owners and operators comply with Swedish legislation (LSO 2003:778).</value>
+  </data>
+  <data name="MultiTenantArchitecture" xml:space="preserve">
+    <value>Multi-tenant architecture for secure data isolation</value>
+  </data>
+  <data name="InteractiveFloorPlan" xml:space="preserve">
+    <value>Interactive floor plan visualization with Leaflet.js</value>
+  </data>
+  <data name="AutomatedReporting" xml:space="preserve">
+    <value>Automated inspection reporting and reminders</value>
+  </data>
+  <data name="ProfessionalPDFReports" xml:space="preserve">
+    <value>Professional PDF reports with QuestPDF</value>
+  </data>
+  <data name="OfflineCapable" xml:space="preserve">
+    <value>Offline-capable for inspections in areas with poor connectivity</value>
+  </data>
+  
+</root>

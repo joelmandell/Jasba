@@ -10,10 +10,11 @@
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
 @inject IJSRuntime JSRuntime
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Object Types - SBA Pro</PageTitle>
+<PageTitle>@Localizer["ObjectTypes"] - @Localizer["AppName"]</PageTitle>
 
-<h3>Inspection Object Types</h3>
+<h3>@Localizer["InspectionObjectTypes"]</h3>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -32,25 +33,25 @@
 }
 
 <div class="mb-3">
-    <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Type</button>
+    <button class="btn btn-primary" @onclick="ShowCreateForm">@Localizer["AddNewType"]</button>
 </div>
 
 @if (showCreateForm)
 {
     <div class="card mb-3">
-        <div class="card-header">Create New Object Type</div>
+        <div class="card-header">@Localizer["CreateNewObjectType"]</div>
         <div class="card-body">
             <EditForm Model="newType" OnValidSubmit="CreateType">
                 <div class="mb-3">
-                    <label class="form-label">Name</label>
+                    <label class="form-label">@Localizer["Name"]</label>
                     <InputText class="form-control" @bind-Value="newType.Name" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon (emoji or symbol)</label>
+                    <label class="form-label">@Localizer["Icon"] (@Localizer["IconPlaceholder"])</label>
                     <InputText class="form-control" @bind-Value="newType.Icon" placeholder="🧯" />
                 </div>
-                <button type="submit" class="btn btn-success">Create</button>
-                <button type="button" class="btn btn-secondary" @onclick="CancelCreate">Cancel</button>
+                <button type="submit" class="btn btn-success">@Localizer["Create"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelCreate">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
     </div>
@@ -59,19 +60,19 @@
 @if (editingType != null)
 {
     <div class="card mb-3">
-        <div class="card-header">Edit Object Type</div>
+        <div class="card-header">@Localizer["EditObjectType"]</div>
         <div class="card-body">
             <EditForm Model="editingType" OnValidSubmit="SaveEdit">
                 <div class="mb-3">
-                    <label class="form-label">Name</label>
+                    <label class="form-label">@Localizer["Name"]</label>
                     <InputText class="form-control" @bind-Value="editingType.Name" />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Icon (emoji or symbol)</label>
+                    <label class="form-label">@Localizer["Icon"] (@Localizer["IconPlaceholder"])</label>
                     <InputText class="form-control" @bind-Value="editingType.Icon" placeholder="🧯" />
                 </div>
-                <button type="submit" class="btn btn-success">Save Changes</button>
-                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                <button type="submit" class="btn btn-success">@Localizer["SaveChanges"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
     </div>
@@ -87,8 +88,8 @@
                     <div class="card-body">
                         <h5 class="card-title">@type.Icon @type.Name</h5>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-primary" @onclick="() => ShowEditForm(type)">Edit</button>
-                            <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(type)">Delete</button>
+                            <button class="btn btn-sm btn-primary" @onclick="() => ShowEditForm(type)">@Localizer["Edit"]</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(type)">@Localizer["Delete"]</button>
                         </div>
                     </div>
                 </div>
@@ -98,7 +99,7 @@
 }
 else
 {
-    <p>Loading object types...</p>
+    <p>@Localizer["Loading"]</p>
 }
 
 @code {
@@ -152,7 +153,7 @@ else
         await context.SaveChangesAsync();
 
         showCreateForm = false;
-        successMessage = $"Object type '{newType.Name}' created successfully.";
+        successMessage = string.Format(Localizer["ObjectTypeCreated"], newType.Name);
         await LoadTypes();
     }
 
@@ -189,7 +190,7 @@ else
             objectType.Icon = editingType.Icon;
             
             await context.SaveChangesAsync();
-            successMessage = $"Object type '{editingType.Name}' updated successfully.";
+            successMessage = string.Format(Localizer["ObjectTypeUpdated"], editingType.Name);
         }
 
         editingType = null;
@@ -199,7 +200,7 @@ else
     private async Task ConfirmDelete(InspectionObjectType type)
     {
         var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
-            $"Are you sure you want to delete '{type.Icon} {type.Name}'?");
+            string.Format(Localizer["DeleteConfirm"], $"{type.Icon} {type.Name}"));
         
         if (confirmed)
         {
@@ -216,7 +217,7 @@ else
         
         if (objectsCount > 0)
         {
-            errorMessage = $"Cannot delete this object type because it is used by {objectsCount} inspection object(s). Remove those objects first.";
+            errorMessage = string.Format(Localizer["CannotDeleteInUse"], objectsCount);
             return;
         }
 
@@ -226,7 +227,7 @@ else
             var typeName = objectType.Name;
             context.InspectionObjectTypes.Remove(objectType);
             await context.SaveChangesAsync();
-            successMessage = $"Object type '{typeName}' deleted successfully.";
+            successMessage = string.Format(Localizer["ObjectTypeDeleted"], typeName);
             await LoadTypes();
         }
     }

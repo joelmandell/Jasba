@@ -2,22 +2,24 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Localization
 @using SBAPro.Core.Entities
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<ApplicationUser> UserManager
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Dashboard - SBA Pro</PageTitle>
+<PageTitle>@Localizer["Dashboard"] - @Localizer["AppName"]</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <h1>Welcome to SBA Pro</h1>
-        <p>Systematiskt Brandskyddsarbete - Professional Fire Safety Management System</p>
+        <h1>@Localizer["WelcomeTo"] @Localizer["AppName"]</h1>
+        <p>@Localizer["SystematicFireSafety"]</p>
 
         @if (currentUser != null)
         {
             <div class="alert alert-info">
-                <strong>Logged in as:</strong> @currentUser.Email<br/>
-                <strong>Tenant:</strong> @(currentUser.TenantId.HasValue ? tenantName : "System Administrator")
+                <strong>@Localizer["LoggedInAs"]</strong> @currentUser.Email<br/>
+                <strong>@Localizer["Tenant"]</strong> @(currentUser.TenantId.HasValue ? tenantName : Localizer["SystemAdministrator"])
             </div>
 
             <div class="row mt-4">
