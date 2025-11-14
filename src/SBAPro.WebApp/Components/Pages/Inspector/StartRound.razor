@@ -3,17 +3,19 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.Extensions.Localization
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
 @attribute [Authorize(Roles = "Inspector,TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Start Inspection Round - SBA Pro</PageTitle>
+<PageTitle>@Localizer["StartInspectionRound"] - @Localizer["AppName"]</PageTitle>
 
 <div class="content">
-    <h3 class="text-2xl font-bold mb-6">Start New Inspection Round</h3>
+    <h3 class="text-2xl font-bold mb-6">@Localizer["StartNewInspectionRound"]</h3>
 
     @if (message != null)
     {
@@ -23,25 +25,25 @@
     }
 
     <div class="card">
-        <div class="card-header">Select Site and Floor Plan</div>
+        <div class="card-header">@Localizer["SelectSiteAndFloorPlan"]</div>
         <div class="card-body">
             @if (sites == null)
             {
-                <p>Loading sites...</p>
+                <p>@Localizer["LoadingSites"]</p>
             }
             else if (sites.Count == 0)
             {
                 <div class="alert alert-info">
-                    No sites available. Contact your administrator to set up sites and floor plans.
+                    @Localizer["NoSitesAvailable"]
                 </div>
             }
             else
             {
                 <EditForm Model="this" OnValidSubmit="StartInspectionRound">
                     <div class="mb-3">
-                        <label class="form-label">Site</label>
+                        <label class="form-label">@Localizer["Site"]</label>
                         <select class="form-control form-select" @onchange="OnSiteSelected">
-                            <option value="">Select a site...</option>
+                            <option value="">@Localizer["SelectASite"]</option>
                             @foreach (var site in sites)
                             {
                                 <option value="@site.Id">@site.Name - @site.Address</option>
@@ -52,20 +54,20 @@
                     @if (selectedSite != null)
                     {
                         <div class="mb-3">
-                            <label class="form-label">Floor Plan</label>
+                            <label class="form-label">@Localizer["FloorPlan"]</label>
                             @if (selectedSite.FloorPlans.Count == 0)
                             {
                                 <div class="alert alert-warning">
-                                    This site has no floor plans. Ask your administrator to upload floor plans.
+                                    @Localizer["NoFloorPlans"]
                                 </div>
                             }
                             else
                             {
                                 <select class="form-control form-select" @onchange="OnFloorPlanSelected">
-                                    <option value="">Select a floor plan...</option>
+                                    <option value="">@Localizer["SelectAFloorPlan"]</option>
                                     @foreach (var fp in selectedSite.FloorPlans)
                                     {
-                                        <option value="@fp.Id">@fp.Name (@fp.InspectionObjects.Count objects)</option>
+                                        <option value="@fp.Id">@fp.Name (@fp.InspectionObjects.Count @Localizer["Objects"])</option>
                                     }
                                 </select>
                             }
@@ -74,17 +76,17 @@
                         @if (selectedFloorPlan != null)
                         {
                             <div class="alert alert-info">
-                                <strong>Ready to start!</strong><br />
-                                This floor plan has @selectedFloorPlan.InspectionObjects.Count inspection objects.
+                                <strong>@Localizer["ReadyToStart"]</strong><br />
+                                @string.Format(Localizer["ThisFloorPlanHasObjects"], selectedFloorPlan.InspectionObjects.Count)
                             </div>
                         }
                     }
 
                     <div class="mt-4">
                         <button type="submit" class="btn btn-success" disabled="@(selectedFloorPlan == null)">
-                            Start Inspection Round
+                            @Localizer["StartRound"]
                         </button>
-                        <a href="/Inspector/Rounds" class="btn btn-secondary">Cancel</a>
+                        <a href="/Inspector/Rounds" class="btn btn-secondary">@Localizer["Cancel"]</a>
                     </div>
                 </EditForm>
             }

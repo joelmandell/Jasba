@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
 @using Microsoft.JSInterop
 @using SBAPro.Core.Entities
 @using SBAPro.Core.Interfaces
@@ -11,14 +12,15 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IReportGenerator ReportGenerator
+@inject IStringLocalizer<SharedResources> Localizer
 
-<PageTitle>Inspection Rounds - SBA Pro</PageTitle>
+<PageTitle>@Localizer["InspectionRounds"] - @Localizer["AppName"]</PageTitle>
 
 <div class="content">
     <div class="mb-4 flex justify-between items-center">
-        <h3 class="text-2xl font-bold">Inspection Rounds</h3>
+        <h3 class="text-2xl font-bold">@Localizer["InspectionRounds"]</h3>
         <a href="/Inspector/StartRound" class="btn btn-primary">
-            Start New Round
+            @Localizer["StartNewRound"]
         </a>
     </div>
 
@@ -27,7 +29,7 @@
         @if (rounds.Count == 0)
         {
             <div class="alert alert-info">
-                No inspection rounds found. Click "Start New Round" to begin your first inspection.
+                @Localizer["NoRoundsFound"]
             </div>
         }
         else
@@ -37,12 +39,12 @@
                     <table class="table table-striped">
                         <thead>
                             <tr>
-                                <th>Site</th>
-                                <th>Started</th>
-                                <th>Completed</th>
-                                <th>Status</th>
-                                <th>Results</th>
-                                <th>Actions</th>
+                                <th>@Localizer["Site"]</th>
+                                <th>@Localizer["Started"]</th>
+                                <th>@Localizer["Completed"]</th>
+                                <th>@Localizer["Status"]</th>
+                                <th>@Localizer["Results"]</th>
+                                <th>@Localizer["Actions"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,29 +57,29 @@
                                     <td>
                                         @if (round.Status == InspectionRoundStatus.Completed)
                                         {
-                                            <span class="badge badge-success">Completed</span>
+                                            <span class="badge badge-success">@Localizer["Completed"]</span>
                                         }
                                         else if (round.Status == InspectionRoundStatus.InProgress)
                                         {
-                                            <span class="badge badge-info">In Progress</span>
+                                            <span class="badge badge-info">@Localizer["InProgress"]</span>
                                         }
                                         else
                                         {
                                             <span class="badge badge-warning">@round.Status</span>
                                         }
                                     </td>
-                                    <td>@round.InspectionResults.Count items</td>
+                                    <td>@round.InspectionResults.Count @Localizer["Items"]</td>
                                     <td>
                                         @if (round.Status != InspectionRoundStatus.Completed)
                                         {
                                             <a href="/Inspector/Execute/@round.Id" class="btn btn-sm btn-primary">
-                                                Continue
+                                                @Localizer["Continue"]
                                             </a>
                                         }
                                         else
                                         {
                                             <button class="btn btn-sm btn-success" @onclick="() => DownloadReport(round.Id)">
-                                                📄 Download PDF Report
+                                                @Localizer["DownloadPDFReport"]
                                             </button>
                                         }
                                     </td>

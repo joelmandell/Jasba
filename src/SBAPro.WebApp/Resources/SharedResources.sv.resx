@@ -517,4 +517,71 @@
     <value>Offlinekompatibel för inspektioner i områden med dålig anslutning</value>
   </data>
   
+  <!-- Inspector - Rounds -->
+  <data name="InspectionRounds" xml:space="preserve">
+    <value>Inspektionsrundor</value>
+  </data>
+  <data name="StartNewRound" xml:space="preserve">
+    <value>Starta ny runda</value>
+  </data>
+  <data name="NoRoundsFound" xml:space="preserve">
+    <value>Inga inspektionsrundor hittades. Klicka på "Starta ny runda" för att påbörja din första inspektion.</value>
+  </data>
+  <data name="Started" xml:space="preserve">
+    <value>Startad</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Slutförd</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Pågående</value>
+  </data>
+  <data name="Results" xml:space="preserve">
+    <value>Resultat</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Åtgärder</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Fortsätt</value>
+  </data>
+  <data name="DownloadPDFReport" xml:space="preserve">
+    <value>📄 Ladda ner PDF-rapport</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>objekt</value>
+  </data>
+  
+  <!-- Inspector - Execute Round -->
+  <data name="ExecuteInspection" xml:space="preserve">
+    <value>Utför inspektion</value>
+  </data>
+  <data name="LoadingInspectionRound" xml:space="preserve">
+    <value>Laddar inspektionsrunda...</value>
+  </data>
+  <data name="InspectionRound" xml:space="preserve">
+    <value>Inspektionsrunda</value>
+  </data>
+  <data name="ClickObjectsToInspect" xml:space="preserve">
+    <value>Klicka på objekt för att inspektera</value>
+  </data>
+  <data name="SaveInspection" xml:space="preserve">
+    <value>Spara inspektion</value>
+  </data>
+  <data name="CompleteRound" xml:space="preserve">
+    <value>Slutför runda</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Framsteg</value>
+  </data>
+  <data name="ObjectsInspected" xml:space="preserve">
+    <value>{0} av {1} objekt inspekterade</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>valfritt</value>
+  </data>
+  <data name="AllObjectsInspected" xml:space="preserve">
+    <value>Alla objekt inspekterade!</value>
+  </data>
+  
 </root>

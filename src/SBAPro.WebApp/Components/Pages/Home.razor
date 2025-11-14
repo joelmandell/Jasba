@@ -28,9 +28,9 @@
                         <div class="col-md-4">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">System Administration</h5>
-                                    <p class="card-text">Manage tenants and system configuration</p>
-                                    <a href="/Admin/Tenants" class="btn btn-primary">Manage Tenants</a>
+                                    <h5 class="card-title">@Localizer["SystemAdministration"]</h5>
+                                    <p class="card-text">@Localizer["ManageTenantsAndSystem"]</p>
+                                    <a href="/Admin/Tenants" class="btn btn-primary">@Localizer["ManageTenants"]</a>
                                 </div>
                             </div>
                         </div>
@@ -42,9 +42,9 @@
                         <div class="col-md-4">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Site Management</h5>
-                                    <p class="card-text">Manage your sites and floor plans</p>
-                                    <a href="/Tenant/Sites" class="btn btn-primary">Manage Sites</a>
+                                    <h5 class="card-title">@Localizer["SiteManagement"]</h5>
+                                    <p class="card-text">@Localizer["ManageSitesAndFloorPlans"]</p>
+                                    <a href="/Tenant/Sites" class="btn btn-primary">@Localizer["ManageSites"]</a>
                                 </div>
                             </div>
                         </div>
@@ -56,9 +56,9 @@
                         <div class="col-md-4">
                             <div class="card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Inspections</h5>
-                                    <p class="card-text">Perform and view inspection rounds</p>
-                                    <a href="/Inspector/Rounds" class="btn btn-primary">View Inspections</a>
+                                    <h5 class="card-title">@Localizer["Inspections"]</h5>
+                                    <p class="card-text">@Localizer["PerformAndViewInspections"]</p>
+                                    <a href="/Inspector/Rounds" class="btn btn-primary">@Localizer["ViewInspections"]</a>
                                 </div>
                             </div>
                         </div>
@@ -68,23 +68,22 @@
         }
     </Authorized>
     <NotAuthorized>
-        <h1>Welcome to SBA Pro</h1>
-        <p>Systematiskt Brandskyddsarbete - Professional Fire Safety Management System</p>
-        <p>Please <a href="/Account/Login">login</a> to continue.</p>
+        <h1>@Localizer["WelcomeTo"] @Localizer["AppName"]</h1>
+        <p>@Localizer["SystematicFireSafety"]</p>
+        <p>@Localizer["PleaseLoginToContinue"]</p>
         
         <div class="card mt-4">
             <div class="card-body">
-                <h5 class="card-title">About SBA Pro</h5>
+                <h5 class="card-title">@Localizer["AboutSBAPro"]</h5>
                 <p class="card-text">
-                    SBA Pro is a comprehensive, cloud-based SaaS system for managing Systematic Fire Protection Work (SBA).
-                    It helps property owners and operators comply with Swedish legislation (LSO 2003:778).
+                    @Localizer["AboutDescription"]
                 </p>
                 <ul>
-                    <li>Multi-tenant architecture for secure data isolation</li>
-                    <li>Interactive floor plan visualization with Leaflet.js</li>
-                    <li>Automated inspection reporting and reminders</li>
-                    <li>Professional PDF reports with QuestPDF</li>
-                    <li>Offline-capable for inspections in areas with poor connectivity</li>
+                    <li>@Localizer["MultiTenantArchitecture"]</li>
+                    <li>@Localizer["InteractiveFloorPlan"]</li>
+                    <li>@Localizer["AutomatedReporting"]</li>
+                    <li>@Localizer["ProfessionalPDFReports"]</li>
+                    <li>@Localizer["OfflineCapable"]</li>
                 </ul>
             </div>
         </div>

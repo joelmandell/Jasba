@@ -517,4 +517,71 @@
     <value>Offline-capable for inspections in areas with poor connectivity</value>
   </data>
   
+  <!-- Inspector - Rounds -->
+  <data name="InspectionRounds" xml:space="preserve">
+    <value>Inspection Rounds</value>
+  </data>
+  <data name="StartNewRound" xml:space="preserve">
+    <value>Start New Round</value>
+  </data>
+  <data name="NoRoundsFound" xml:space="preserve">
+    <value>No inspection rounds found. Click "Start New Round" to begin your first inspection.</value>
+  </data>
+  <data name="Started" xml:space="preserve">
+    <value>Started</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>In Progress</value>
+  </data>
+  <data name="Results" xml:space="preserve">
+    <value>Results</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="DownloadPDFReport" xml:space="preserve">
+    <value>📄 Download PDF Report</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>items</value>
+  </data>
+  
+  <!-- Inspector - Execute Round -->
+  <data name="ExecuteInspection" xml:space="preserve">
+    <value>Execute Inspection</value>
+  </data>
+  <data name="LoadingInspectionRound" xml:space="preserve">
+    <value>Loading inspection round...</value>
+  </data>
+  <data name="InspectionRound" xml:space="preserve">
+    <value>Inspection Round</value>
+  </data>
+  <data name="ClickObjectsToInspect" xml:space="preserve">
+    <value>Click on objects to inspect</value>
+  </data>
+  <data name="SaveInspection" xml:space="preserve">
+    <value>Save Inspection</value>
+  </data>
+  <data name="CompleteRound" xml:space="preserve">
+    <value>Complete Round</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="ObjectsInspected" xml:space="preserve">
+    <value>{0} of {1} objects inspected</value>
+  </data>
+  <data name="Optional" xml:space="preserve">
+    <value>optional</value>
+  </data>
+  <data name="AllObjectsInspected" xml:space="preserve">
+    <value>All objects inspected!</value>
+  </data>
+  
 </root>

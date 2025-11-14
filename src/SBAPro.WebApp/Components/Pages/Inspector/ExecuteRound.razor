@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Localization
 @using Microsoft.JSInterop
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
@@ -9,9 +10,10 @@
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject IStringLocalizer<SharedResources> Localizer
 @implements IAsyncDisposable
 
-<PageTitle>Execute Inspection - SBA Pro</PageTitle>
+<PageTitle>@Localizer["ExecuteInspection"] - @Localizer["AppName"]</PageTitle>
 
 <!-- Include Leaflet CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -20,14 +22,14 @@
 <div class="content">
     @if (round == null || floorPlan == null)
     {
-        <p>Loading inspection round...</p>
+        <p>@Localizer["LoadingInspectionRound"]</p>
     }
     else
     {
         <div class="mb-4 flex justify-between items-center">
             <div>
-                <h3 class="text-2xl font-bold">Inspection Round</h3>
-                <p class="text-muted">@round.Site.Name - Started @round.StartedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                <h3 class="text-2xl font-bold">@Localizer["InspectionRound"]</h3>
+                <p class="text-muted">@round.Site.Name - @Localizer["Started"] @round.StartedAt.ToString("yyyy-MM-dd HH:mm")</p>
             </div>
             <div>
                 <span class="badge badge-info">@round.Status</span>
@@ -39,7 +41,7 @@
                 <div class="card">
                     <div class="card-header">
                         <strong>@floorPlan.Name</strong>
-                        <small class="text-muted ml-2">Click on objects to inspect</small>
+                        <small class="text-muted ml-2">@Localizer["ClickObjectsToInspect"]</small>
                     </div>
                     <div class="card-body">
                         <div id="inspectionMap" style="height: 600px; width: 100%;"></div>
@@ -71,11 +73,11 @@
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Comment (optional)</label>
-                                    <textarea class="form-control" rows="3" value="@inspectionForm.Comment" @onchange="@((ChangeEventArgs e) => inspectionForm.Comment = e.Value?.ToString() ?? string.Empty)" placeholder="Add any notes or issues..."></textarea>
+                                    <label class="form-label">@Localizer["Comment"] (@Localizer["Optional"])</label>
+                                    <textarea class="form-control" rows="3" value="@inspectionForm.Comment" @onchange="@((ChangeEventArgs e) => inspectionForm.Comment = e.Value?.ToString() ?? string.Empty)" placeholder="@Localizer["AddComment"]"></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-success w-full">Save Inspection</button>
-                                <button type="button" class="btn btn-secondary w-full mt-2" @onclick="ClearSelection">Cancel</button>
+                                <button type="submit" class="btn btn-success w-full">@Localizer["SaveInspection"]</button>
+                                <button type="button" class="btn btn-secondary w-full mt-2" @onclick="ClearSelection">@Localizer["Cancel"]</button>
                             </EditForm>
                         </div>
                     </div>
@@ -147,10 +149,10 @@
                     <div class="card mt-3">
                         <div class="card-body">
                             <div class="alert alert-success">
-                                <strong>All objects inspected!</strong>
+                                <strong>@Localizer["AllObjectsInspected"]</strong>
                             </div>
                             <button class="btn btn-primary w-full" @onclick="CompleteRound">
-                                Complete Round
+                                @Localizer["CompleteRound"]
                             </button>
                         </div>
                     </div>
