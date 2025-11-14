@@ -2,16 +2,34 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.JSInterop
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
 @using SBAPro.Core.Interfaces
 @attribute [Authorize(Roles = "TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Object Types - SBA Pro</PageTitle>
 
 <h3>Inspection Object Types</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @successMessage
+        <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+    </div>
+}
 
 <div class="mb-3">
     <button class="btn btn-primary" @onclick="ShowCreateForm">Add New Type</button>
@@ -32,7 +50,28 @@
                     <InputText class="form-control" @bind-Value="newType.Icon" placeholder="🧯" />
                 </div>
                 <button type="submit" class="btn btn-success">Create</button>
-                <button type="button" class="btn btn-secondary" @onclick="() => showCreateForm = false">Cancel</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelCreate">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@if (editingType != null)
+{
+    <div class="card mb-3">
+        <div class="card-header">Edit Object Type</div>
+        <div class="card-body">
+            <EditForm Model="editingType" OnValidSubmit="SaveEdit">
+                <div class="mb-3">
+                    <label class="form-label">Name</label>
+                    <InputText class="form-control" @bind-Value="editingType.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Icon (emoji or symbol)</label>
+                    <InputText class="form-control" @bind-Value="editingType.Icon" placeholder="🧯" />
+                </div>
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
             </EditForm>
         </div>
     </div>
@@ -47,6 +86,10 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">@type.Icon @type.Name</h5>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-primary" @onclick="() => ShowEditForm(type)">Edit</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(type)">Delete</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -62,6 +105,9 @@ else
     private List<InspectionObjectType>? objectTypes;
     private bool showCreateForm = false;
     private InspectionObjectType newType = new();
+    private InspectionObjectType? editingType = null;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,8 +123,17 @@ else
     private void ShowCreateForm()
     {
         showCreateForm = true;
+        editingType = null;
         newType = new InspectionObjectType();
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
         StateHasChanged();
+    }
+
+    private void CancelCreate()
+    {
+        showCreateForm = false;
+        newType = new InspectionObjectType();
     }
 
     private async Task CreateType()
@@ -97,6 +152,82 @@ else
         await context.SaveChangesAsync();
 
         showCreateForm = false;
+        successMessage = $"Object type '{newType.Name}' created successfully.";
         await LoadTypes();
+    }
+
+    private void ShowEditForm(InspectionObjectType type)
+    {
+        showCreateForm = false;
+        editingType = new InspectionObjectType
+        {
+            Id = type.Id,
+            Name = type.Name,
+            Icon = type.Icon,
+            TenantId = type.TenantId
+        };
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        editingType = null;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (editingType == null) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        var objectType = await context.InspectionObjectTypes.FindAsync(editingType.Id);
+        if (objectType != null)
+        {
+            objectType.Name = editingType.Name;
+            objectType.Icon = editingType.Icon;
+            
+            await context.SaveChangesAsync();
+            successMessage = $"Object type '{editingType.Name}' updated successfully.";
+        }
+
+        editingType = null;
+        await LoadTypes();
+    }
+
+    private async Task ConfirmDelete(InspectionObjectType type)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Are you sure you want to delete '{type.Icon} {type.Name}'?");
+        
+        if (confirmed)
+        {
+            await DeleteType(type.Id);
+        }
+    }
+
+    private async Task DeleteType(Guid typeId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        
+        // Check if the type is being used
+        var objectsCount = await context.InspectionObjects.CountAsync(io => io.TypeId == typeId);
+        
+        if (objectsCount > 0)
+        {
+            errorMessage = $"Cannot delete this object type because it is used by {objectsCount} inspection object(s). Remove those objects first.";
+            return;
+        }
+
+        var objectType = await context.InspectionObjectTypes.FindAsync(typeId);
+        if (objectType != null)
+        {
+            var typeName = objectType.Name;
+            context.InspectionObjectTypes.Remove(objectType);
+            await context.SaveChangesAsync();
+            successMessage = $"Object type '{typeName}' deleted successfully.";
+            await LoadTypes();
+        }
     }
 }
