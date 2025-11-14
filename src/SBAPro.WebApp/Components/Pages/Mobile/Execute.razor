@@ -80,25 +80,25 @@
         <div class="modal-content" @onclick:stopPropagation="true">
             <div class="modal-header">
                 <h3>@selectedObject.Description</h3>
-                <button class="close-btn" @onclick="CloseModal">✕</button>
+                <button type="button" class="close-btn" @onclick="CloseModal">✕</button>
             </div>
             
             <div class="modal-body">
                 <div class="form-group">
                     <label>@Localizer["Status"]</label>
                     <div class="status-buttons">
-                        <button class="status-btn @(inspectionStatus == InspectionStatus.Ok ? "active ok" : "")"
-                                @onclick='() => inspectionStatus = InspectionStatus.Ok'>
+                        <button type="button" class="status-btn @(inspectionStatus == InspectionStatus.Ok ? "active ok" : "")"
+                                @onclick='() => SetStatus(InspectionStatus.Ok)'>
                             <span class="btn-icon">✅</span>
                             <span>@Localizer["Ok"]</span>
                         </button>
-                        <button class="status-btn @(inspectionStatus == InspectionStatus.Deficient ? "active deficient" : "")"
-                                @onclick='() => inspectionStatus = InspectionStatus.Deficient'>
+                        <button type="button" class="status-btn @(inspectionStatus == InspectionStatus.Deficient ? "active deficient" : "")"
+                                @onclick='() => SetStatus(InspectionStatus.Deficient)'>
                             <span class="btn-icon">⚠️</span>
                             <span>@Localizer["Deficient"]</span>
                         </button>
-                        <button class="status-btn @(inspectionStatus == InspectionStatus.NotAccessible ? "active not-accessible" : "")"
-                                @onclick='() => inspectionStatus = InspectionStatus.NotAccessible'>
+                        <button type="button" class="status-btn @(inspectionStatus == InspectionStatus.NotAccessible ? "active not-accessible" : "")"
+                                @onclick='() => SetStatus(InspectionStatus.NotAccessible)'>
                             <span class="btn-icon">🚫</span>
                             <span>@Localizer["NotAccessible"]</span>
                         </button>
@@ -114,10 +114,10 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">
                     @Localizer["Cancel"]
                 </button>
-                <button class="btn btn-primary" @onclick="SaveInspection" disabled="@(inspectionStatus == null)">
+                <button type="button" class="btn btn-primary" @onclick="SaveInspection" disabled="@(inspectionStatus == null)">
                     @Localizer["SaveInspection"]
                 </button>
             </div>
@@ -193,6 +193,12 @@
         showModal = true;
     }
 
+    private void SetStatus(InspectionStatus status)
+    {
+        inspectionStatus = status;
+        StateHasChanged();
+    }
+
     private void CloseModal()
     {
         showModal = false;
@@ -218,6 +224,7 @@
                 existingResult.Status = inspectionStatus.Value;
                 existingResult.Comment = inspectionComment;
                 existingResult.Timestamp = DateTime.UtcNow;
+                context.InspectionResults.Update(existingResult);
             }
             else
             {
@@ -233,14 +240,17 @@
                 context.InspectionResults.Add(newResult);
             }
 
-            await context.SaveChangesAsync();
-            await LoadInspectionRound();
+            var changesSaved = await context.SaveChangesAsync();
+            Console.WriteLine($"SaveInspection: {changesSaved} changes saved");
+            
             CloseModal();
+            await LoadInspectionRound();
+            StateHasChanged();
         }
         catch (Exception ex)
         {
-            // Log error
             Console.WriteLine($"Error saving inspection: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
     }
 

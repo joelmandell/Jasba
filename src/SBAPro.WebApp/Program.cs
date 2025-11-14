@@ -42,33 +42,16 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Configure EasyCaching In-Memory provider for second level cache
 builder.Services.AddEasyCaching(options =>
 {
-    options.UseInMemory(config =>
-    {
-        config.DBConfig = new EasyCaching.InMemory.InMemoryCachingOptions
-        {
-            ExpirationScanFrequency = 60,
-            SizeLimit = 1000
-        };
-    });
+    options.UseInMemory();
 });
 
 // Register IEFCacheServiceProvider as Singleton FIRST
 builder.Services.AddSingleton<IEFCacheServiceProvider, EFCacheServiceProviderWrapper>();
-const string providerName = "InMemory1";
 
-// Configure EF Core Second Level Cache (must come AFTER IEFCacheServiceProvider registration)
-builder.Services.AddEFSecondLevelCache(options =>
-{
-options.UseEasyCachingCoreProvider(providerName, isHybridCache: false)
-           .UseCacheKeyPrefix("EF_");
-               options.CacheAllQueries(CacheExpirationMode.Sliding, TimeSpan.FromMinutes(30));
-});
 
 // Configure Database with cache interceptor
 builder.Services.AddDbContextFactory<ApplicationDbContext>((serviceProvider, options) =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .AddInterceptors(serviceProvider.GetRequiredService<SecondLevelCacheInterceptor>()),
-    ServiceLifetime.Scoped);
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")),    ServiceLifetime.Scoped);
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>

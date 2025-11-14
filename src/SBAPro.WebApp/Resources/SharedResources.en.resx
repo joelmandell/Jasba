@@ -104,6 +104,9 @@
   <data name="Dashboard" xml:space="preserve">
     <value>Dashboard</value>
   </data>
+  <data name="Rounds" xml:space="preserve">
+    <value>Rounds</value>
+  </data>
   <data name="Login" xml:space="preserve">
     <value>Login</value>
   </data>
