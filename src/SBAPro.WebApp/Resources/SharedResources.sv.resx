@@ -638,5 +638,29 @@
   <data name="EnterComment" xml:space="preserve">
     <value>Ange kommentar...</value>
   </data>
+  <data name="SelectFloor" xml:space="preserve">
+    <value>Välj våning</value>
+  </data>
+  <data name="AllFloors" xml:space="preserve">
+    <value>Alla våningar</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Foto</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>Ta bort foto</value>
+  </data>
+  <data name="PhotoUploaded" xml:space="preserve">
+    <value>Foto uppladdad</value>
+  </data>
+  <data name="PhotoUploadFailed" xml:space="preserve">
+    <value>Foto uppladdning misslyckades</value>
+  </data>
+  <data name="PhotoRemoved" xml:space="preserve">
+    <value>Foto borttaget</value>
+  </data>
+  <data name="PhotoTooLarge" xml:space="preserve">
+    <value>Fotot är för stort (max 5MB)</value>
+  </data>
   
 </root>

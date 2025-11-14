@@ -638,5 +638,29 @@
   <data name="EnterComment" xml:space="preserve">
     <value>Enter comment...</value>
   </data>
+  <data name="SelectFloor" xml:space="preserve">
+    <value>Select Floor</value>
+  </data>
+  <data name="AllFloors" xml:space="preserve">
+    <value>All Floors</value>
+  </data>
+  <data name="Photo" xml:space="preserve">
+    <value>Photo</value>
+  </data>
+  <data name="RemovePhoto" xml:space="preserve">
+    <value>Remove Photo</value>
+  </data>
+  <data name="PhotoUploaded" xml:space="preserve">
+    <value>Photo uploaded</value>
+  </data>
+  <data name="PhotoUploadFailed" xml:space="preserve">
+    <value>Photo upload failed</value>
+  </data>
+  <data name="PhotoRemoved" xml:space="preserve">
+    <value>Photo removed</value>
+  </data>
+  <data name="PhotoTooLarge" xml:space="preserve">
+    <value>Photo is too large (max 5MB)</value>
+  </data>
   
 </root>

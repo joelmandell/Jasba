@@ -30,6 +30,21 @@
     {
         <div class="round-info">
             <h2>@inspectionRound.Site.Name</h2>
+            
+            @if (floorPlans.Count > 1)
+            {
+                <div class="form-group">
+                    <label>@Localizer["SelectFloor"]</label>
+                    <select @bind="selectedFloorPlanId" @bind:after="FilterObjectsByFloor" class="form-select">
+                        <option value="@Guid.Empty">@Localizer["AllFloors"]</option>
+                        @foreach (var fp in floorPlans)
+                        {
+                            <option value="@fp.Id">@fp.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            
             <div class="progress-bar">
                 <div class="progress-fill" style="width: @GetProgressPercentage()%"></div>
             </div>
@@ -39,7 +54,7 @@
         </div>
 
         <div class="objects-list">
-            @foreach (var obj in objects)
+            @foreach (var obj in filteredObjects)
             {
                 var result = GetInspectionResult(obj.Id);
                 var isInspected = result != null;
@@ -111,6 +126,27 @@
                               rows="4" 
                               placeholder="@Localizer["EnterComment"]"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label>@Localizer["Photo"] (@Localizer["Optional"])</label>
+                    
+                    @if (existingPhotoData != null)
+                    {
+                        <div class="photo-preview">
+                            <img src="@GetPhotoDataUrl()" alt="Inspection photo" />
+                            <button type="button" class="btn-remove-photo" @onclick="RemovePhoto">
+                                🗑️ @Localizer["RemovePhoto"]
+                            </button>
+                        </div>
+                    }
+                    
+                    <InputFile OnChange="HandlePhotoSelected" accept="image/*" capture="environment" class="file-input" />
+                    
+                    @if (!string.IsNullOrEmpty(photoUploadMessage))
+                    {
+                        <div class="upload-message">@photoUploadMessage</div>
+                    }
+                </div>
             </div>
 
             <div class="modal-footer">
@@ -131,15 +167,23 @@
 
     private InspectionRound? inspectionRound;
     private List<InspectionObject> objects = new();
+    private List<InspectionObject> filteredObjects = new();
+    private List<FloorPlan> floorPlans = new();
     private List<InspectionResult> results = new();
     private bool isLoading = true;
     private int inspectedCount = 0;
     private int totalObjects = 0;
+    private Guid selectedFloorPlanId = Guid.Empty;
 
     private bool showModal = false;
     private InspectionObject? selectedObject;
     private InspectionStatus? inspectionStatus;
     private string? inspectionComment;
+    private byte[]? existingPhotoData;
+    private string? existingPhotoMimeType;
+    private byte[]? newPhotoData;
+    private string? newPhotoMimeType;
+    private string? photoUploadMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -163,14 +207,18 @@
 
             if (inspectionRound != null)
             {
+                floorPlans = inspectionRound.Site.FloorPlans.OrderBy(fp => fp.Name).ToList();
+                
                 objects = inspectionRound.Site.FloorPlans
                     .SelectMany(fp => fp.InspectionObjects)
                     .OrderBy(o => o.Description)
                     .ToList();
 
+                FilterObjectsByFloor();
+
                 results = inspectionRound.InspectionResults.ToList();
-                totalObjects = objects.Count;
-                inspectedCount = results.Count;
+                totalObjects = filteredObjects.Count;
+                inspectedCount = results.Count(r => filteredObjects.Any(o => o.Id == r.ObjectId));
             }
         }
         finally
@@ -190,6 +238,11 @@
         var existingResult = GetInspectionResult(obj.Id);
         inspectionStatus = existingResult?.Status;
         inspectionComment = existingResult?.Comment;
+        existingPhotoData = existingResult?.PhotoData;
+        existingPhotoMimeType = existingResult?.PhotoMimeType;
+        newPhotoData = null;
+        newPhotoMimeType = null;
+        photoUploadMessage = null;
         showModal = true;
     }
 
@@ -205,6 +258,11 @@
         selectedObject = null;
         inspectionStatus = null;
         inspectionComment = null;
+        existingPhotoData = null;
+        existingPhotoMimeType = null;
+        newPhotoData = null;
+        newPhotoMimeType = null;
+        photoUploadMessage = null;
     }
 
     private async Task SaveInspection()
@@ -224,6 +282,20 @@
                 existingResult.Status = inspectionStatus.Value;
                 existingResult.Comment = inspectionComment;
                 existingResult.Timestamp = DateTime.UtcNow;
+                
+                // Update photo if new one was uploaded, or clear if removed
+                if (newPhotoData != null)
+                {
+                    existingResult.PhotoData = newPhotoData;
+                    existingResult.PhotoMimeType = newPhotoMimeType;
+                }
+                else if (existingPhotoData == null)
+                {
+                    // Photo was removed
+                    existingResult.PhotoData = null;
+                    existingResult.PhotoMimeType = null;
+                }
+                
                 context.InspectionResults.Update(existingResult);
             }
             else
@@ -235,7 +307,9 @@
                     ObjectId = selectedObject.Id,
                     Status = inspectionStatus.Value,
                     Comment = inspectionComment,
-                    Timestamp = DateTime.UtcNow
+                    Timestamp = DateTime.UtcNow,
+                    PhotoData = newPhotoData,
+                    PhotoMimeType = newPhotoMimeType
                 };
                 context.InspectionResults.Add(newResult);
             }
@@ -279,5 +353,72 @@
             InspectionStatus.NotAccessible => "🚫",
             _ => "⚪"
         };
+    }
+
+    private void FilterObjectsByFloor()
+    {
+        if (selectedFloorPlanId == Guid.Empty)
+        {
+            filteredObjects = objects.ToList();
+        }
+        else
+        {
+            filteredObjects = objects.Where(o => o.FloorPlanId == selectedFloorPlanId).ToList();
+        }
+        
+        totalObjects = filteredObjects.Count;
+        inspectedCount = results.Count(r => filteredObjects.Any(o => o.Id == r.ObjectId));
+    }
+
+    private async Task HandlePhotoSelected(InputFileChangeEventArgs e)
+    {
+        photoUploadMessage = null;
+        
+        try
+        {
+            var file = e.File;
+            
+            if (file.Size > 5 * 1024 * 1024) // 5MB limit
+            {
+                photoUploadMessage = Localizer["PhotoTooLarge"];
+                return;
+            }
+
+            using var memoryStream = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(memoryStream);
+            
+            newPhotoData = memoryStream.ToArray();
+            newPhotoMimeType = file.ContentType;
+            existingPhotoData = newPhotoData; // Show preview immediately
+            existingPhotoMimeType = newPhotoMimeType;
+            
+            photoUploadMessage = Localizer["PhotoUploaded"];
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            photoUploadMessage = $"{Localizer["PhotoUploadFailed"]}: {ex.Message}";
+            Console.WriteLine($"Photo upload error: {ex.Message}");
+        }
+    }
+
+    private void RemovePhoto()
+    {
+        existingPhotoData = null;
+        existingPhotoMimeType = null;
+        newPhotoData = null;
+        newPhotoMimeType = null;
+        photoUploadMessage = Localizer["PhotoRemoved"];
+        StateHasChanged();
+    }
+
+    private string GetPhotoDataUrl()
+    {
+        if (existingPhotoData != null && !string.IsNullOrEmpty(existingPhotoMimeType))
+        {
+            var base64 = Convert.ToBase64String(existingPhotoData);
+            return $"data:{existingPhotoMimeType};base64,{base64}";
+        }
+        return string.Empty;
     }
 }
