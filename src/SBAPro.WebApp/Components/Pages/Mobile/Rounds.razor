@@ -38,9 +38,21 @@
                 <div class="round-card" @onclick="() => NavigateToRound(round.Id)">
                     <div class="round-header">
                         <h3>@round.Site.Name</h3>
-                        <span class="round-status @GetStatusClass(round.Status)">
-                            @Localizer[round.Status.ToString()]
-                        </span>
+                        <div class="round-header-right">
+                            <span class="round-status @GetStatusClass(round.Status)">
+                                @Localizer[round.Status.ToString()]
+                            </span>
+                            @if (round.Status != InspectionRoundStatus.Completed)
+                            {
+                                <button class="btn-delete-round" 
+                                        @onclick="() => ConfirmDeleteRound(round)" 
+                                        @onclick:stopPropagation="true"
+                                        type="button"
+                                        title="@Localizer["DeleteRound"]">
+                                    🗑️
+                                </button>
+                            }
+                        </div>
                     </div>
                     <div class="round-details">
                         <div class="detail-item">
@@ -62,16 +74,6 @@
                     <div class="round-action">
                         <span class="action-icon">→</span>
                     </div>
-
-                    @if (round.Status != InspectionRoundStatus.Completed)
-                    {
-                        <button class="btn-delete-round" 
-                                @onclick="() => ConfirmDeleteRound(round)" 
-                                @onclick:stopPropagation="true"
-                                type="button">
-                            🗑️
-                        </button>
-                    }
                 </div>
             }
         </div>
@@ -153,6 +155,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 0.75rem;
+        gap: 0.5rem;
     }
 
     .round-header h3 {
@@ -160,6 +163,12 @@
         font-size: 1.125rem;
         color: #1f2937;
         flex: 1;
+    }
+
+    .round-header-right {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .round-status {
@@ -213,27 +222,22 @@
     }
 
     .btn-delete-round {
-        position: absolute;
-        top: 0.75rem;
-        right: 0.75rem;
-        background: #ef4444;
-        color: white;
+        background: transparent;
+        color: #9ca3af;
         border: none;
-        border-radius: 50%;
-        width: 2rem;
-        height: 2rem;
+        padding: 0.25rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
+        font-size: 0.875rem;
         cursor: pointer;
         transition: all 0.2s;
-        z-index: 10;
+        line-height: 1;
     }
 
     .btn-delete-round:active {
-        transform: scale(0.95);
-        background: #dc2626;
+        transform: scale(0.9);
+        color: #ef4444;
     }
 
     .modal-overlay {
