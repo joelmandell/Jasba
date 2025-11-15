@@ -1,31 +1,71 @@
 @page "/Tenant/FloorPlans/{FloorPlanId:guid}/Edit"
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.JSInterop
 @using SBAPro.Core.Entities
 @using SBAPro.Infrastructure.Data
 @using SBAPro.Core.Interfaces
+@using Microsoft.Extensions.Localization
 @attribute [Authorize(Roles = "TenantAdmin")]
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
 @inject IJSRuntime JSRuntime
+@inject IStringLocalizer<SharedResources> Localizer
 @implements IAsyncDisposable
 
-<PageTitle>Edit Floor Plan - SBA Pro</PageTitle>
+<PageTitle>@Localizer["EditFloorPlan"] - SBA Pro</PageTitle>
 
 <!-- Include Leaflet CSS and JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<h3>Edit Floor Plan: @floorPlanName</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="flex-grow-1">
+        @if (isEditingName)
+        {
+            <div class="d-flex align-items-center">
+                <input type="text" class="form-control me-2" style="max-width: 400px;" @bind="editedFloorPlanName" />
+                <button class="btn btn-sm btn-success me-1" @onclick="SaveFloorPlanName">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" @onclick="CancelEditName">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        }
+        else
+        {
+            <h3 class="d-inline">@floorPlanName</h3>
+            <button class="btn btn-sm btn-link" @onclick="StartEditName">
+                <i class="bi bi-pencil"></i>
+            </button>
+        }
+    </div>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="editModeToggle" @bind="isEditMode" @bind:after="ToggleEditMode">
+        <label class="form-check-label" for="editModeToggle">
+            @Localizer["EditMode"]
+        </label>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <strong>Floor Plan</strong>
-                <small class="text-muted">Click on the map to place inspection objects</small>
+                <strong>@Localizer["FloorPlan"]</strong>
+                <small class="text-muted">
+                    @if (isEditMode)
+                    {
+                        <span>@Localizer["EditModeHint"]</span>
+                    }
+                    else
+                    {
+                        <span>@Localizer["ClickToPlaceObjects"]</span>
+                    }
+                </small>
             </div>
             <div class="card-body">
                 <div id="floorPlanMap" style="height: 600px; width: 100%;"></div>
@@ -90,6 +130,9 @@
 
     private FloorPlan? floorPlan;
     private string floorPlanName = "";
+    private string editedFloorPlanName = "";
+    private bool isEditingName = false;
+    private bool isEditMode = false;
     private List<InspectionObject>? objects;
     private List<InspectionObjectType>? objectTypes;
     private bool showObjectForm = false;
@@ -177,13 +220,76 @@
     [JSInvokable]
     public async Task OnMapClicked(double x, double y)
     {
-        await InvokeAsync(() =>
+        // Only allow adding objects when not in edit mode
+        if (!isEditMode)
         {
-            clickedX = x;
-            clickedY = y;
-            showObjectForm = true;
-            StateHasChanged();
-        });
+            await InvokeAsync(() =>
+            {
+                clickedX = x;
+                clickedY = y;
+                showObjectForm = true;
+                StateHasChanged();
+            });
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnMarkerMoved(string objectId, double x, double y)
+    {
+        if (!isEditMode) return;
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        var objGuid = Guid.Parse(objectId);
+        var obj = await context.InspectionObjects.FirstOrDefaultAsync(o => o.Id == objGuid);
+        
+        if (obj != null)
+        {
+            obj.NormalizedX = x;
+            obj.NormalizedY = y;
+            await context.SaveChangesAsync();
+        }
+    }
+
+    private void StartEditName()
+    {
+        editedFloorPlanName = floorPlanName;
+        isEditingName = true;
+    }
+
+    private async Task SaveFloorPlanName()
+    {
+        if (string.IsNullOrWhiteSpace(editedFloorPlanName))
+        {
+            CancelEditName();
+            return;
+        }
+
+        using var context = await DbFactory.CreateDbContextAsync();
+        var fp = await context.FloorPlans.FirstOrDefaultAsync(f => f.Id == FloorPlanId);
+        
+        if (fp != null)
+        {
+            fp.Name = editedFloorPlanName.Trim();
+            await context.SaveChangesAsync();
+            floorPlanName = fp.Name;
+        }
+
+        isEditingName = false;
+    }
+
+    private void CancelEditName()
+    {
+        isEditingName = false;
+        editedFloorPlanName = "";
+    }
+
+    private async Task ToggleEditMode()
+    {
+        if (module != null)
+        {
+            await module.InvokeVoidAsync("setEditMode", "floorPlanMap", isEditMode, dotNetRef, 
+                floorPlan?.ImageWidth ?? 1000, floorPlan?.ImageHeight ?? 800);
+        }
     }
 
     private async Task SaveObject()

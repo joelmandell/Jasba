@@ -90,10 +90,11 @@ export function addMarker(mapId, x, y, imageWidth, imageHeight, objectId, object
         const pixelY = y * imageHeight;
         const pixelX = x * imageWidth;
 
-        // Create marker
+        // Create marker with draggable option set to false initially
         const marker = L.marker([pixelY, pixelX], {
             title: description,
-            alt: objectType
+            alt: objectType,
+            draggable: false
         });
 
         // Add popup
@@ -102,8 +103,10 @@ export function addMarker(mapId, x, y, imageWidth, imageHeight, objectId, object
         // Add to map
         marker.addTo(map);
 
-        // Store object ID on marker for later reference
+        // Store object ID and dimensions on marker for later reference
         marker.objectId = objectId;
+        marker.imageWidth = imageWidth;
+        marker.imageHeight = imageHeight;
 
         return true;
     } catch (error) {
@@ -159,6 +162,70 @@ export function clearMarkers(mapId) {
         return true;
     } catch (error) {
         console.error('Error clearing markers:', error);
+        return false;
+    }
+}
+
+export function setEditMode(mapId, isEditMode, dotnetHelper, imageWidth, imageHeight) {
+    try {
+        if (!maps[mapId]) {
+            console.error('Map not found:', mapId);
+            return false;
+        }
+
+        const map = maps[mapId];
+        
+        // Enable/disable click handler for adding new objects
+        if (isEditMode) {
+            // Remove click handler when in edit mode
+            map.off('click');
+        } else {
+            // Re-enable click handler when exiting edit mode
+            map.off('click'); // Clear any existing handlers
+            map.on('click', function(e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                const normalizedY = lat / imageHeight;
+                const normalizedX = lng / imageWidth;
+                dotnetHelper.invokeMethodAsync('OnMapClicked', normalizedX, normalizedY);
+            });
+        }
+
+        // Enable/disable dragging for all markers
+        map.eachLayer(function(layer) {
+            if (layer instanceof L.Marker) {
+                if (isEditMode) {
+                    // Enable dragging
+                    layer.dragging.enable();
+                    
+                    // Add dragend event listener if not already added
+                    if (!layer.hasOwnProperty('_dragHandlerAdded')) {
+                        layer.on('dragend', function(e) {
+                            const marker = e.target;
+                            const position = marker.getLatLng();
+                            
+                            // Convert back to normalized coordinates
+                            const normalizedY = position.lat / marker.imageHeight;
+                            const normalizedX = position.lng / marker.imageWidth;
+                            
+                            // Call back to .NET with updated position
+                            dotnetHelper.invokeMethodAsync('OnMarkerMoved', 
+                                marker.objectId, 
+                                normalizedX, 
+                                normalizedY);
+                        });
+                        layer._dragHandlerAdded = true;
+                    }
+                } else {
+                    // Disable dragging
+                    layer.dragging.disable();
+                }
+            }
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Error setting edit mode:', error);
         return false;
     }
 }

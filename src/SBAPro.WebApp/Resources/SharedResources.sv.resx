@@ -713,5 +713,14 @@
   <data name="Create" xml:space="preserve">
     <value>Skapa</value>
   </data>
+  <data name="EditMode" xml:space="preserve">
+    <value>Redigeringsläge</value>
+  </data>
+  <data name="EditModeHint" xml:space="preserve">
+    <value>Dra objekt för att flytta dem</value>
+  </data>
+  <data name="ClickToPlaceObjects" xml:space="preserve">
+    <value>Klicka på kartan för att placera objekt</value>
+  </data>
   
 </root>

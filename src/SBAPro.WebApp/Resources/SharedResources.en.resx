@@ -713,5 +713,14 @@
   <data name="Create" xml:space="preserve">
     <value>Create</value>
   </data>
+  <data name="EditMode" xml:space="preserve">
+    <value>Edit Mode</value>
+  </data>
+  <data name="EditModeHint" xml:space="preserve">
+    <value>Drag objects to move them</value>
+  </data>
+  <data name="ClickToPlaceObjects" xml:space="preserve">
+    <value>Click on the map to place objects</value>
+  </data>
   
 </root>
