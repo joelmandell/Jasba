@@ -12,8 +12,32 @@
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<ApplicationDbContext> DbFactory
 @inject ITenantService TenantService
+@implements IDisposable
 
 <div class="mobile-execute">
+    @* Offline/Sync Status Indicator *@
+    <div class="sync-status @(isOnline ? "online" : "offline")" @onclick="CheckSyncStatus">
+        @if (!isOnline)
+        {
+            <span class="status-icon">📡</span>
+            <span class="status-text">@Localizer["OfflineMode"]</span>
+            @if (pendingCount > 0)
+            {
+                <span class="pending-badge">@pendingCount</span>
+            }
+        }
+        else if (pendingCount > 0)
+        {
+            <span class="status-icon">🔄</span>
+            <span class="status-text">@Localizer["SyncPending"] (@pendingCount)</span>
+        }
+        else
+        {
+            <span class="status-icon">✓</span>
+            <span class="status-text">@Localizer["Online"]</span>
+        }
+    </div>
+
     @if (isLoading)
     {
         <div class="loading">
@@ -187,6 +211,11 @@
     private List<PhotoItem> photos = new();
     private List<PhotoItem> photosToDelete = new();
     private string? photoUploadMessage;
+    
+    // Offline support
+    private bool isOnline = true;
+    private int pendingCount = 0;
+    private System.Threading.Timer? syncTimer;
 
     private class PhotoItem
     {
@@ -199,6 +228,46 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadInspectionRound();
+        await CheckOnlineStatus();
+        
+        // Start periodic sync status check (every 5 seconds)
+        syncTimer = new System.Threading.Timer(async _ => 
+        {
+            await InvokeAsync(async () =>
+            {
+                await CheckOnlineStatus();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+    }
+
+    private async Task CheckOnlineStatus()
+    {
+        // Check network status (simplified - in production use JS interop for navigator.onLine)
+        isOnline = true; // Default to online
+        
+        // Check pending count from IndexedDB (would need JS interop in full implementation)
+        // await JSRuntime.InvokeAsync<int>("offlineStorage.getPendingCount");
+        pendingCount = 0;
+    }
+
+    private async Task CheckSyncStatus()
+    {
+        await CheckOnlineStatus();
+        
+        if (isOnline && pendingCount > 0)
+        {
+            // Trigger background sync (would need proper API endpoint)
+            Console.WriteLine($"[Execute] Would sync {pendingCount} pending items");
+            
+            // In full implementation:
+            // await JSRuntime.InvokeVoidAsync("navigator.serviceWorker.ready.then", "r => r.sync.register('sync-inspections')");
+        }
+    }
+
+    public void Dispose()
+    {
+        syncTimer?.Dispose();
     }
 
     private async Task LoadInspectionRound()

@@ -7,6 +7,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <meta name="theme-color" content="#3b82f6" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["SBAPro.WebApp.styles.css"]" />
@@ -19,8 +22,23 @@
 <body>
     <Routes />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/offline-storage.js"></script>
     <script src="js/site.js"></script>
     <script src="_framework/blazor.web.js"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('[App] ServiceWorker registered:', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('[App] ServiceWorker registration failed:', err);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>

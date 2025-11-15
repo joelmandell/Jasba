@@ -680,5 +680,23 @@
   <data name="ConfirmDeleteRoundMessage" xml:space="preserve">
     <value>Are you sure you want to delete this round? All inspection data will be permanently deleted.</value>
   </data>
+  <data name="OfflineMode" xml:space="preserve">
+    <value>Offline Mode</value>
+  </data>
+  <data name="Online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Sync Pending</value>
+  </data>
+  <data name="SyncComplete" xml:space="preserve">
+    <value>Sync Complete</value>
+  </data>
+  <data name="DataSavedLocally" xml:space="preserve">
+    <value>Data saved locally</value>
+  </data>
+  <data name="WillSyncWhenOnline" xml:space="preserve">
+    <value>Will sync when online</value>
+  </data>
   
 </root>

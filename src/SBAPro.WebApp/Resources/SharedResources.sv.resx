@@ -680,5 +680,23 @@
   <data name="ConfirmDeleteRoundMessage" xml:space="preserve">
     <value>Är du säker på att du vill ta bort denna runda? All inspektionsdata kommer att raderas permanent.</value>
   </data>
+  <data name="OfflineMode" xml:space="preserve">
+    <value>Offline-läge</value>
+  </data>
+  <data name="Online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="SyncPending" xml:space="preserve">
+    <value>Synkning väntar</value>
+  </data>
+  <data name="SyncComplete" xml:space="preserve">
+    <value>Synkning klar</value>
+  </data>
+  <data name="DataSavedLocally" xml:space="preserve">
+    <value>Data sparad lokalt</value>
+  </data>
+  <data name="WillSyncWhenOnline" xml:space="preserve">
+    <value>Kommer synka när du är online</value>
+  </data>
   
 </root>
