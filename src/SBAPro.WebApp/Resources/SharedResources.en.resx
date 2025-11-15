@@ -671,5 +671,14 @@
   <data name="PhotosTooLarge" xml:space="preserve">
     <value>photos too large</value>
   </data>
+  <data name="DeleteRound" xml:space="preserve">
+    <value>Delete Round</value>
+  </data>
+  <data name="ConfirmDeleteRound" xml:space="preserve">
+    <value>Confirm Deletion</value>
+  </data>
+  <data name="ConfirmDeleteRoundMessage" xml:space="preserve">
+    <value>Are you sure you want to delete this round? All inspection data will be permanently deleted.</value>
+  </data>
   
 </root>

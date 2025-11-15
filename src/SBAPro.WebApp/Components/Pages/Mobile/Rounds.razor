@@ -62,11 +62,39 @@
                     <div class="round-action">
                         <span class="action-icon">→</span>
                     </div>
+
+                    @if (round.Status != InspectionRoundStatus.Completed)
+                    {
+                        <button class="btn-delete-round" 
+                                @onclick="() => ConfirmDeleteRound(round)" 
+                                @onclick:stopPropagation="true"
+                                type="button">
+                            🗑️
+                        </button>
+                    }
                 </div>
             }
         </div>
     }
 </div>
+
+@if (showDeleteConfirmation)
+{
+    <div class="modal-overlay" @onclick="CancelDelete">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <h3>@Localizer["ConfirmDeleteRound"]</h3>
+            <p>@Localizer["ConfirmDeleteRoundMessage"]</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" @onclick="CancelDelete" type="button">
+                    @Localizer["Cancel"]
+                </button>
+                <button class="btn btn-danger" @onclick="DeleteRound" type="button">
+                    @Localizer["DeleteRound"]
+                </button>
+            </div>
+        </div>
+    </div>
+}
 
 <style>
     .mobile-rounds {
@@ -183,12 +211,106 @@
         color: #2563eb;
         font-size: 1.5rem;
     }
+
+    .btn-delete-round {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        z-index: 10;
+    }
+
+    .btn-delete-round:active {
+        transform: scale(0.95);
+        background: #dc2626;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin: 1rem;
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .modal-content h3 {
+        margin: 0 0 1rem 0;
+        color: #1f2937;
+        font-size: 1.25rem;
+    }
+
+    .modal-content p {
+        margin: 0 0 1.5rem 0;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-secondary:active {
+        background: #e5e7eb;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-danger:active {
+        background: #dc2626;
+    }
 </style>
 
 @code {
     private List<InspectionRound> rounds = new();
     private bool isLoading = true;
     private Guid currentUserId;
+    private bool showDeleteConfirmation = false;
+    private InspectionRound? roundToDelete = null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -237,5 +359,55 @@
         // To get total objects we'd need to load site floor plans and objects
         // For now just show inspected count
         return $"{inspectedObjects} {Localizer["ObjectsInspected"]}";
+    }
+
+    private void ConfirmDeleteRound(InspectionRound round)
+    {
+        roundToDelete = round;
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        roundToDelete = null;
+        showDeleteConfirmation = false;
+    }
+
+    private async Task DeleteRound()
+    {
+        if (roundToDelete == null)
+        {
+            return;
+        }
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            // Load the round with all related data
+            var round = await context.InspectionRounds
+                .Include(r => r.InspectionResults)
+                    .ThenInclude(res => res.Photos)
+                .FirstOrDefaultAsync(r => r.Id == roundToDelete.Id);
+
+            if (round != null)
+            {
+                // EF Core will handle cascade delete for InspectionResults and InspectionPhotos
+                context.InspectionRounds.Remove(round);
+                await context.SaveChangesAsync();
+
+                // Remove from local list
+                rounds.Remove(roundToDelete);
+            }
+
+            showDeleteConfirmation = false;
+            roundToDelete = null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting round: {ex.Message}");
+            showDeleteConfirmation = false;
+            roundToDelete = null;
+        }
     }
 }

@@ -671,5 +671,14 @@
   <data name="PhotosTooLarge" xml:space="preserve">
     <value>foton för stora</value>
   </data>
+  <data name="DeleteRound" xml:space="preserve">
+    <value>Ta bort runda</value>
+  </data>
+  <data name="ConfirmDeleteRound" xml:space="preserve">
+    <value>Bekräfta borttagning</value>
+  </data>
+  <data name="ConfirmDeleteRoundMessage" xml:space="preserve">
+    <value>Är du säker på att du vill ta bort denna runda? All inspektionsdata kommer att raderas permanent.</value>
+  </data>
   
 </root>
