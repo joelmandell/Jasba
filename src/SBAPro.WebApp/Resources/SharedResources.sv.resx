@@ -662,5 +662,14 @@
   <data name="PhotoTooLarge" xml:space="preserve">
     <value>Fotot är för stort (max 5MB)</value>
   </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Foton</value>
+  </data>
+  <data name="PhotosUploaded" xml:space="preserve">
+    <value>foton uppladdade</value>
+  </data>
+  <data name="PhotosTooLarge" xml:space="preserve">
+    <value>foton för stora</value>
+  </data>
   
 </root>

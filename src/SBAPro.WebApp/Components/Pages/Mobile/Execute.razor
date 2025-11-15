@@ -128,19 +128,24 @@
                 </div>
 
                 <div class="form-group">
-                    <label>@Localizer["Photo"] (@Localizer["Optional"])</label>
+                    <label>@Localizer["Photos"] (@Localizer["Optional"])</label>
                     
-                    @if (existingPhotoData != null)
+                    @if (photos.Any())
                     {
-                        <div class="photo-preview">
-                            <img src="@GetPhotoDataUrl()" alt="Inspection photo" />
-                            <button type="button" class="btn-remove-photo" @onclick="RemovePhoto">
-                                🗑️ @Localizer["RemovePhoto"]
-                            </button>
+                        <div class="photos-grid">
+                            @foreach (var photo in photos)
+                            {
+                                <div class="photo-preview-item">
+                                    <img src="@GetPhotoDataUrl(photo.PhotoData, photo.PhotoMimeType)" alt="Inspection photo" />
+                                    <button type="button" class="btn-remove-photo-small" @onclick="() => RemovePhoto(photo)">
+                                        ✕
+                                    </button>
+                                </div>
+                            }
                         </div>
                     }
                     
-                    <InputFile OnChange="HandlePhotoSelected" accept="image/*" capture="environment" class="file-input" />
+                    <InputFile OnChange="HandlePhotoSelected" accept="image/*" capture="environment" multiple class="file-input" />
                     
                     @if (!string.IsNullOrEmpty(photoUploadMessage))
                     {
@@ -179,11 +184,17 @@
     private InspectionObject? selectedObject;
     private InspectionStatus? inspectionStatus;
     private string? inspectionComment;
-    private byte[]? existingPhotoData;
-    private string? existingPhotoMimeType;
-    private byte[]? newPhotoData;
-    private string? newPhotoMimeType;
+    private List<PhotoItem> photos = new();
+    private List<PhotoItem> photosToDelete = new();
     private string? photoUploadMessage;
+
+    private class PhotoItem
+    {
+        public Guid? Id { get; set; } // Null for new photos
+        public byte[] PhotoData { get; set; } = null!;
+        public string PhotoMimeType { get; set; } = null!;
+        public bool IsNew { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -203,6 +214,7 @@
                 .ThenInclude(fp => fp.InspectionObjects)
                 .ThenInclude(o => o.Type)
                 .Include(r => r.InspectionResults)
+                .ThenInclude(res => res.Photos)
                 .FirstOrDefaultAsync(r => r.Id == RoundId);
 
             if (inspectionRound != null)
@@ -238,10 +250,40 @@
         var existingResult = GetInspectionResult(obj.Id);
         inspectionStatus = existingResult?.Status;
         inspectionComment = existingResult?.Comment;
-        existingPhotoData = existingResult?.PhotoData;
-        existingPhotoMimeType = existingResult?.PhotoMimeType;
-        newPhotoData = null;
-        newPhotoMimeType = null;
+        
+        // Load existing photos from Photos collection (new) and legacy PhotoData (old)
+        photos.Clear();
+        photosToDelete.Clear();
+        
+        if (existingResult != null)
+        {
+            // Load from new Photos collection
+            if (existingResult.Photos != null && existingResult.Photos.Any())
+            {
+                foreach (var photo in existingResult.Photos)
+                {
+                    photos.Add(new PhotoItem
+                    {
+                        Id = photo.Id,
+                        PhotoData = photo.PhotoData,
+                        PhotoMimeType = photo.PhotoMimeType,
+                        IsNew = false
+                    });
+                }
+            }
+            // Fallback to legacy single photo if exists
+            else if (existingResult.PhotoData != null && existingResult.PhotoMimeType != null)
+            {
+                photos.Add(new PhotoItem
+                {
+                    Id = null, // Legacy photo doesn't have ID
+                    PhotoData = existingResult.PhotoData,
+                    PhotoMimeType = existingResult.PhotoMimeType,
+                    IsNew = false
+                });
+            }
+        }
+        
         photoUploadMessage = null;
         showModal = true;
     }
@@ -258,10 +300,8 @@
         selectedObject = null;
         inspectionStatus = null;
         inspectionComment = null;
-        existingPhotoData = null;
-        existingPhotoMimeType = null;
-        newPhotoData = null;
-        newPhotoMimeType = null;
+        photos.Clear();
+        photosToDelete.Clear();
         photoUploadMessage = null;
     }
 
@@ -275,6 +315,7 @@
             using var context = await DbFactory.CreateDbContextAsync();
             
             var existingResult = await context.InspectionResults
+                .Include(r => r.Photos)
                 .FirstOrDefaultAsync(r => r.RoundId == RoundId && r.ObjectId == selectedObject.Id);
 
             if (existingResult != null)
@@ -283,17 +324,28 @@
                 existingResult.Comment = inspectionComment;
                 existingResult.Timestamp = DateTime.UtcNow;
                 
-                // Update photo if new one was uploaded, or clear if removed
-                if (newPhotoData != null)
+                // Handle photo deletions
+                foreach (var photoToDelete in photosToDelete.Where(p => p.Id.HasValue))
                 {
-                    existingResult.PhotoData = newPhotoData;
-                    existingResult.PhotoMimeType = newPhotoMimeType;
+                    var photoEntity = existingResult.Photos.FirstOrDefault(p => p.Id == photoToDelete.Id);
+                    if (photoEntity != null)
+                    {
+                        context.InspectionPhotos.Remove(photoEntity);
+                    }
                 }
-                else if (existingPhotoData == null)
+                
+                // Add new photos directly to the context
+                foreach (var newPhoto in photos.Where(p => p.IsNew))
                 {
-                    // Photo was removed
-                    existingResult.PhotoData = null;
-                    existingResult.PhotoMimeType = null;
+                    var photoEntity = new InspectionPhoto
+                    {
+                        Id = Guid.NewGuid(),
+                        InspectionResultId = existingResult.Id,
+                        PhotoData = newPhoto.PhotoData,
+                        PhotoMimeType = newPhoto.PhotoMimeType,
+                        UploadedAt = DateTime.UtcNow
+                    };
+                    context.InspectionPhotos.Add(photoEntity);
                 }
                 
                 context.InspectionResults.Update(existingResult);
@@ -307,10 +359,22 @@
                     ObjectId = selectedObject.Id,
                     Status = inspectionStatus.Value,
                     Comment = inspectionComment,
-                    Timestamp = DateTime.UtcNow,
-                    PhotoData = newPhotoData,
-                    PhotoMimeType = newPhotoMimeType
+                    Timestamp = DateTime.UtcNow
                 };
+                
+                // Add photos to new result
+                foreach (var photo in photos.Where(p => p.IsNew))
+                {
+                    newResult.Photos.Add(new InspectionPhoto
+                    {
+                        Id = Guid.NewGuid(),
+                        InspectionResultId = newResult.Id,
+                        PhotoData = photo.PhotoData,
+                        PhotoMimeType = photo.PhotoMimeType,
+                        UploadedAt = DateTime.UtcNow
+                    });
+                }
+                
                 context.InspectionResults.Add(newResult);
             }
 
@@ -376,23 +440,43 @@
         
         try
         {
-            var file = e.File;
+            var filesProcessed = 0;
+            var filesFailed = 0;
             
-            if (file.Size > 5 * 1024 * 1024) // 5MB limit
+            foreach (var file in e.GetMultipleFiles(10))
             {
-                photoUploadMessage = Localizer["PhotoTooLarge"];
-                return;
-            }
+                if (file.Size > 5 * 1024 * 1024) // 5MB limit per file
+                {
+                    filesFailed++;
+                    continue;
+                }
 
-            using var memoryStream = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(memoryStream);
+                using var memoryStream = new MemoryStream();
+                await file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024).CopyToAsync(memoryStream);
+                
+                photos.Add(new PhotoItem
+                {
+                    Id = null,
+                    PhotoData = memoryStream.ToArray(),
+                    PhotoMimeType = file.ContentType,
+                    IsNew = true
+                });
+                
+                filesProcessed++;
+            }
             
-            newPhotoData = memoryStream.ToArray();
-            newPhotoMimeType = file.ContentType;
-            existingPhotoData = newPhotoData; // Show preview immediately
-            existingPhotoMimeType = newPhotoMimeType;
+            if (filesProcessed > 0)
+            {
+                photoUploadMessage = filesProcessed == 1 
+                    ? Localizer["PhotoUploaded"] 
+                    : $"{filesProcessed} {Localizer["PhotosUploaded"]}";
+            }
             
-            photoUploadMessage = Localizer["PhotoUploaded"];
+            if (filesFailed > 0)
+            {
+                photoUploadMessage += $" ({filesFailed} {Localizer["PhotosTooLarge"]})";
+            }
+            
             StateHasChanged();
         }
         catch (Exception ex)
@@ -402,22 +486,23 @@
         }
     }
 
-    private void RemovePhoto()
+    private void RemovePhoto(PhotoItem photo)
     {
-        existingPhotoData = null;
-        existingPhotoMimeType = null;
-        newPhotoData = null;
-        newPhotoMimeType = null;
+        if (!photo.IsNew && photo.Id.HasValue)
+        {
+            photosToDelete.Add(photo);
+        }
+        photos.Remove(photo);
         photoUploadMessage = Localizer["PhotoRemoved"];
         StateHasChanged();
     }
 
-    private string GetPhotoDataUrl()
+    private string GetPhotoDataUrl(byte[] photoData, string photoMimeType)
     {
-        if (existingPhotoData != null && !string.IsNullOrEmpty(existingPhotoMimeType))
+        if (photoData != null && !string.IsNullOrEmpty(photoMimeType))
         {
-            var base64 = Convert.ToBase64String(existingPhotoData);
-            return $"data:{existingPhotoMimeType};base64,{base64}";
+            var base64 = Convert.ToBase64String(photoData);
+            return $"data:{photoMimeType};base64,{base64}";
         }
         return string.Empty;
     }

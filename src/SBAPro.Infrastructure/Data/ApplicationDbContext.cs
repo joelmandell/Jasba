@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InspectionObjectType> InspectionObjectTypes => Set<InspectionObjectType>();
     public DbSet<InspectionRound> InspectionRounds => Set<InspectionRound>();
     public DbSet<InspectionResult> InspectionResults => Set<InspectionResult>();
+    public DbSet<InspectionPhoto> InspectionPhotos => Set<InspectionPhoto>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -39,6 +40,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             builder.Entity<InspectionObject>().HasQueryFilter(io => io.FloorPlan.Site.TenantId == _tenantService.GetTenantId());
             builder.Entity<InspectionRound>().HasQueryFilter(ir => ir.Site.TenantId == _tenantService.GetTenantId());
             builder.Entity<InspectionResult>().HasQueryFilter(ir => ir.Round.Site.TenantId == _tenantService.GetTenantId());
+            builder.Entity<InspectionPhoto>().HasQueryFilter(ip => ip.InspectionResult.Round.Site.TenantId == _tenantService.GetTenantId());
         }
 
         // Configure relationships
@@ -101,5 +103,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(ir => ir.InspectorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<InspectionResult>()
+            .HasMany(ir => ir.Photos)
+            .WithOne(p => p.InspectionResult)
+            .HasForeignKey(p => p.InspectionResultId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

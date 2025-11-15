@@ -662,5 +662,14 @@
   <data name="PhotoTooLarge" xml:space="preserve">
     <value>Photo is too large (max 5MB)</value>
   </data>
+  <data name="Photos" xml:space="preserve">
+    <value>Photos</value>
+  </data>
+  <data name="PhotosUploaded" xml:space="preserve">
+    <value>photos uploaded</value>
+  </data>
+  <data name="PhotosTooLarge" xml:space="preserve">
+    <value>photos too large</value>
+  </data>
   
 </root>

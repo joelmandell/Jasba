@@ -49,13 +49,20 @@ public class InspectionResult
 
     /// <summary>
     /// Optional photo evidence (stored as byte array or URL).
+    /// DEPRECATED: Use Photos collection instead for multiple photos.
     /// </summary>
     public byte[]? PhotoData { get; set; }
 
     /// <summary>
     /// MIME type of the photo if present.
+    /// DEPRECATED: Use Photos collection instead for multiple photos.
     /// </summary>
     public string? PhotoMimeType { get; set; }
+
+    /// <summary>
+    /// Collection of photos attached to this inspection result.
+    /// </summary>
+    public ICollection<InspectionPhoto> Photos { get; set; } = new List<InspectionPhoto>();
 }
 
 /// <summary>
