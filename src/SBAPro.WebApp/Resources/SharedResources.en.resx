@@ -698,5 +698,20 @@
   <data name="WillSyncWhenOnline" xml:space="preserve">
     <value>Will sync when online</value>
   </data>
+  <data name="Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="FloorPlanImageOptionalHint" xml:space="preserve">
+    <value>You can create a floor plan without an image and add objects in a list. The image can be uploaded later.</value>
+  </data>
+  <data name="NoImage" xml:space="preserve">
+    <value>No Image</value>
+  </data>
+  <data name="AddImage" xml:space="preserve">
+    <value>Add Image</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
   
 </root>

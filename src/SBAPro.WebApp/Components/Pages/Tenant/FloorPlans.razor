@@ -43,14 +43,18 @@
                     </div>
                 }
                 <div class="mb-3">
-                    <label class="form-label">@Localizer["FloorPlanImage"]</label>
+                    <label class="form-label">@Localizer["FloorPlanImage"] (@Localizer["Optional"])</label>
                     <InputFile class="form-control" OnChange="HandleFileSelected" accept="image/*" />
                     @if (!string.IsNullOrEmpty(uploadMessage))
                     {
                         <div class="text-info mt-2">@uploadMessage</div>
                     }
+                    @if (!isReUpload)
+                    {
+                        <small class="form-text text-muted">@Localizer["FloorPlanImageOptionalHint"]</small>
+                    }
                 </div>
-                <button type="submit" class="btn btn-success" disabled="@(uploadedFile == null)">@(isReUpload ? Localizer["UpdateImage"] : Localizer["Upload"])</button>
+                <button type="submit" class="btn btn-success" disabled="@(isReUpload && uploadedFile == null)">@(isReUpload ? Localizer["UpdateImage"] : Localizer["Create"])</button>
                 <button type="button" class="btn btn-secondary" @onclick="CancelUpload">@Localizer["Cancel"]</button>
             </EditForm>
         </div>
@@ -66,13 +70,27 @@
                 <div class="card">
                     <div class="card-header">
                         <strong>@floorPlan.Name</strong>
+                        @if (floorPlan.ImageData == null)
+                        {
+                            <span class="badge bg-secondary ms-2">@Localizer["NoImage"]</span>
+                        }
                     </div>
                     <div class="card-body">
-                        <p><strong>@Localizer["Size"]:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
+                        @if (floorPlan.ImageData != null)
+                        {
+                            <p><strong>@Localizer["Size"]:</strong> @floorPlan.ImageWidth x @floorPlan.ImageHeight px</p>
+                        }
                         <p><strong>@Localizer["Objects"]:</strong> @floorPlan.InspectionObjects.Count</p>
                         <div class="btn-group" role="group">
                             <a href="/Tenant/FloorPlans/@floorPlan.Id/Edit" class="btn btn-sm btn-primary">@Localizer["ManageObjects"]</a>
-                            <button class="btn btn-sm btn-warning" @onclick="() => ShowReUploadForm(floorPlan)">@Localizer["ReUploadImage"]</button>
+                            @if (floorPlan.ImageData == null)
+                            {
+                                <button class="btn btn-sm btn-success" @onclick="() => ShowReUploadForm(floorPlan)">@Localizer["AddImage"]</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-warning" @onclick="() => ShowReUploadForm(floorPlan)">@Localizer["ReUploadImage"]</button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -154,25 +172,32 @@ else
 
     private async Task UploadFloorPlan()
     {
-        if (uploadedFile == null) return;
-
         using var context = await DbFactory.CreateDbContextAsync();
 
-        // Read image data
-        var buffer = new byte[uploadedFile.Size];
-        await uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+        byte[]? buffer = null;
+        string? mimeType = null;
+        int width = 1000;  // Default width
+        int height = 800;  // Default height
 
-        // Get image dimensions (simplified - just use defaults for now)
-        // In production, you'd want to use an image library to get actual dimensions
+        // Read image data if file was uploaded
+        if (uploadedFile != null)
+        {
+            buffer = new byte[uploadedFile.Size];
+            await uploadedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024).ReadAsync(buffer);
+            mimeType = uploadedFile.ContentType;
+            // Get image dimensions (simplified - just use defaults for now)
+            // In production, you'd want to use an image library to get actual dimensions
+        }
+
         var floorPlan = new FloorPlan
         {
             Id = Guid.NewGuid(),
             Name = newFloorPlan.Name,
             SiteId = SiteId,
             ImageData = buffer,
-            ImageMimeType = uploadedFile.ContentType,
-            ImageWidth = 1000, // Default width
-            ImageHeight = 800  // Default height
+            ImageMimeType = mimeType,
+            ImageWidth = width,
+            ImageHeight = height
         };
 
         context.FloorPlans.Add(floorPlan);

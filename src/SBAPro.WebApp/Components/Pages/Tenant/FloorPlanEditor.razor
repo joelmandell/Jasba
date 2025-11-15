@@ -142,10 +142,15 @@
         {
             module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "/js/leafletMap.js");
 
-            // Convert image to data URL
-            var imageUrl = $"data:{floorPlan.ImageMimeType};base64,{Convert.ToBase64String(floorPlan.ImageData)}";
+            // Check if floor plan has an image
+            string? imageUrl = null;
+            if (floorPlan.ImageData != null && !string.IsNullOrEmpty(floorPlan.ImageMimeType))
+            {
+                // Convert image to data URL
+                imageUrl = $"data:{floorPlan.ImageMimeType};base64,{Convert.ToBase64String(floorPlan.ImageData)}";
+            }
 
-            // Initialize map
+            // Initialize map (with or without image)
             await module.InvokeVoidAsync("initializeMap", "floorPlanMap", imageUrl, 
                 floorPlan.ImageWidth, floorPlan.ImageHeight);
 

@@ -19,8 +19,50 @@ export function initializeMap(mapId, imageUrl, imageWidth, imageHeight) {
         // Calculate bounds based on image dimensions
         const bounds = [[0, 0], [imageHeight, imageWidth]];
         
-        // Add image overlay
-        L.imageOverlay(imageUrl, bounds).addTo(map);
+        // Add image overlay if image URL is provided
+        if (imageUrl) {
+            L.imageOverlay(imageUrl, bounds).addTo(map);
+        } else {
+            // Create a simple grid background when no image is provided
+            const canvas = document.createElement('canvas');
+            canvas.width = imageWidth;
+            canvas.height = imageHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // Fill with light gray background
+            ctx.fillStyle = '#f5f5f5';
+            ctx.fillRect(0, 0, imageWidth, imageHeight);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            
+            for (let x = 0; x <= imageWidth; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, imageHeight);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= imageHeight; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(imageWidth, y);
+                ctx.stroke();
+            }
+            
+            // Add text in the center
+            ctx.fillStyle = '#999';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('No floor plan image - Click to place objects', imageWidth / 2, imageHeight / 2);
+            
+            // Use canvas as image overlay
+            const canvasUrl = canvas.toDataURL();
+            L.imageOverlay(canvasUrl, bounds).addTo(map);
+        }
         
         // Fit map to bounds
         map.fitBounds(bounds);
