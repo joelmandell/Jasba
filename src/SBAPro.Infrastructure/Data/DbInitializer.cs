@@ -39,6 +39,9 @@ public static class DbInitializer
             }
         }
 
+        // Fix tenants without users - create a default admin for each
+        await FixTenantsWithoutUsers(context, userManager);
+
         // Create demo tenant if no tenants exist
         if (!await context.Tenants.AnyAsync())
         {
@@ -103,6 +106,50 @@ public static class DbInitializer
 
             context.Sites.Add(sampleSite);
             await context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Fixes tenants that were created without users by creating a default admin account for each.
+    /// This handles the migration case where tenants exist in the database but have no associated users.
+    /// </summary>
+    private static async Task FixTenantsWithoutUsers(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    {
+        // Get all tenants (ignore query filters to see all tenants as SystemAdmin)
+        var allTenants = await context.Tenants
+            .IgnoreQueryFilters()
+            .Include(t => t.Users)
+            .ToListAsync();
+
+        foreach (var tenant in allTenants)
+        {
+            // Check if this tenant has any users
+            if (tenant.Users == null || !tenant.Users.Any())
+            {
+                // Create a default admin user for this tenant
+                var defaultEmail = $"admin@{tenant.Name.ToLower().Replace(" ", "")}.com";
+                var defaultPassword = "ChangeMeNow@123"; // Strong default password that should be changed
+
+                var adminUser = new ApplicationUser
+                {
+                    UserName = defaultEmail,
+                    Email = defaultEmail,
+                    EmailConfirmed = true,
+                    TenantId = tenant.Id,
+                    FullName = $"{tenant.Name} Admin"
+                };
+
+                var result = await userManager.CreateAsync(adminUser, defaultPassword);
+                if (result.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "TenantAdmin");
+                    Console.WriteLine($"✓ Created admin user for tenant '{tenant.Name}': {defaultEmail} / {defaultPassword}");
+                }
+                else
+                {
+                    Console.WriteLine($"✗ Failed to create admin user for tenant '{tenant.Name}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
+            }
         }
     }
 }
