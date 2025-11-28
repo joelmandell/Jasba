@@ -24,6 +24,18 @@
     <div class="card mb-3">
         <div class="card-header">@Localizer["CreateNewTenant"]</div>
         <div class="card-body">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success">
+                    @successMessage
+                </div>
+            }
             <EditForm Model="newTenant" OnValidSubmit="CreateTenant">
                 <div class="mb-3">
                     <label class="form-label">@Localizer["TenantName"]</label>
@@ -73,6 +85,8 @@
     private List<Tenant>? tenants;
     private bool showCreateForm = false;
     private CreateTenantModel newTenant = new();
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -93,39 +107,69 @@
     {
         showCreateForm = true;
         newTenant = new CreateTenantModel();
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
         StateHasChanged();
     }
 
     private async Task CreateTenant()
     {
-        using var context = await DbFactory.CreateDbContextAsync();
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
         
-        var tenant = new Tenant
+        try
         {
-            Id = Guid.NewGuid(),
-            Name = newTenant.Name
-        };
+            Tenant tenant;
+            
+            // First, create the tenant
+            using (var context = await DbFactory.CreateDbContextAsync())
+            {
+                tenant = new Tenant
+                {
+                    Id = Guid.NewGuid(),
+                    Name = newTenant.Name
+                };
 
-        context.Tenants.Add(tenant);
-        await context.SaveChangesAsync();
+                context.Tenants.Add(tenant);
+                await context.SaveChangesAsync();
+            }
 
-        // Create tenant admin user
-        var adminUser = new ApplicationUser
-        {
-            UserName = newTenant.AdminEmail,
-            Email = newTenant.AdminEmail,
-            EmailConfirmed = true,
-            TenantId = tenant.Id
-        };
+            // Then, create the tenant admin user in a separate transaction
+            // This ensures the tenant is fully committed before creating the user
+            var adminUser = new ApplicationUser
+            {
+                UserName = newTenant.AdminEmail,
+                Email = newTenant.AdminEmail,
+                EmailConfirmed = true,
+                TenantId = tenant.Id
+            };
 
-        var result = await UserManager.CreateAsync(adminUser, newTenant.AdminPassword);
-        if (result.Succeeded)
-        {
-            await UserManager.AddToRoleAsync(adminUser, "TenantAdmin");
+            var result = await UserManager.CreateAsync(adminUser, newTenant.AdminPassword);
+            if (result.Succeeded)
+            {
+                await UserManager.AddToRoleAsync(adminUser, "TenantAdmin");
+                successMessage = $"Tenant '{tenant.Name}' and admin user created successfully!";
+                await Task.Delay(2000); // Show success message briefly
+                showCreateForm = false;
+                await LoadTenants();
+            }
+            else
+            {
+                // Show user creation errors
+                errorMessage = "Failed to create admin user: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                
+                // Also log to console for debugging
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"Error creating user: {error.Code} - {error.Description}");
+                }
+            }
         }
-
-        showCreateForm = false;
-        await LoadTenants();
+        catch (Exception ex)
+        {
+            errorMessage = $"Error creating tenant: {ex.Message}";
+            Console.WriteLine($"Exception creating tenant: {ex}");
+        }
     }
 
     public class CreateTenantModel

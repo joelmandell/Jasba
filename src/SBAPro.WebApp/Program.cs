@@ -51,7 +51,11 @@ builder.Services.AddSingleton<IEFCacheServiceProvider, EFCacheServiceProviderWra
 
 // Configure Database with cache interceptor
 builder.Services.AddDbContextFactory<ApplicationDbContext>((serviceProvider, options) =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")),    ServiceLifetime.Scoped);
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
+
+// Also add regular DbContext for Identity (it requires a scoped DbContext, not just a factory)
+builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")), ServiceLifetime.Scoped);
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
