@@ -140,48 +140,67 @@
 
         try
         {
-            using var context = await DbFactory.CreateDbContextAsync();
-            
-            // Re-fetch the tenant with all related data to ensure we can delete it
-            var tenantToDelete = await context.Tenants
-                .IgnoreQueryFilters()
-                .Include(t => t.Users)
-                .Include(t => t.Sites)
-                .Include(t => t.InspectionObjectTypes)
-                .FirstOrDefaultAsync(t => t.Id == tenant.Id);
+            int userCount = 0;
+            string tenantName = tenant.Name;
 
-            if (tenantToDelete == null)
+            // First, verify tenant can be deleted
+            using (var context = await DbFactory.CreateDbContextAsync())
             {
-                errorMessage = "Tenant not found.";
-                return;
-            }
+                var tenantToCheck = await context.Tenants
+                    .IgnoreQueryFilters()
+                    .Include(t => t.Users)
+                    .Include(t => t.Sites)
+                    .Include(t => t.InspectionObjectTypes)
+                    .FirstOrDefaultAsync(t => t.Id == tenant.Id);
 
-            // Check if tenant has any sites or custom object types
-            if (tenantToDelete.Sites.Any() || tenantToDelete.InspectionObjectTypes.Any())
-            {
-                errorMessage = "Cannot delete tenant with existing sites or inspection object types. Please delete them first.";
-                return;
-            }
-
-            // Delete all users associated with this tenant
-            if (tenantToDelete.Users.Any())
-            {
-                foreach (var user in tenantToDelete.Users.ToList())
+                if (tenantToCheck == null)
                 {
-                    var deleteResult = await UserManager.DeleteAsync(user);
-                    if (!deleteResult.Succeeded)
+                    errorMessage = "Tenant not found.";
+                    return;
+                }
+
+                // Check if tenant has any sites or custom object types
+                if (tenantToCheck.Sites.Any() || tenantToCheck.InspectionObjectTypes.Any())
+                {
+                    errorMessage = "Cannot delete tenant with existing sites or inspection object types. Please delete them first.";
+                    return;
+                }
+
+                userCount = tenantToCheck.Users.Count;
+
+                // Delete all users associated with this tenant (using UserManager which has its own context)
+                if (tenantToCheck.Users.Any())
+                {
+                    foreach (var user in tenantToCheck.Users.ToList())
                     {
-                        errorMessage = $"Failed to delete user {user.Email}: {string.Join(", ", deleteResult.Errors.Select(e => e.Description))}";
-                        return;
+                        var deleteResult = await UserManager.DeleteAsync(user);
+                        if (!deleteResult.Succeeded)
+                        {
+                            errorMessage = $"Failed to delete user {user.Email}: {string.Join(", ", deleteResult.Errors.Select(e => e.Description))}";
+                            return;
+                        }
                     }
                 }
             }
 
-            // Delete the tenant
-            context.Tenants.Remove(tenantToDelete);
-            await context.SaveChangesAsync();
+            // After users are deleted, create a new context and delete the tenant
+            using (var context = await DbFactory.CreateDbContextAsync())
+            {
+                var tenantToDelete = await context.Tenants
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(t => t.Id == tenant.Id);
 
-            successMessage = $"Tenant '{tenantToDelete.Name}' and {tenantToDelete.Users.Count} user(s) deleted successfully.";
+                if (tenantToDelete == null)
+                {
+                    errorMessage = "Tenant not found.";
+                    return;
+                }
+
+                context.Tenants.Remove(tenantToDelete);
+                await context.SaveChangesAsync();
+            }
+
+            successMessage = $"Tenant '{tenantName}' and {userCount} user(s) deleted successfully.";
             await LoadTenants();
         }
         catch (Exception ex)
