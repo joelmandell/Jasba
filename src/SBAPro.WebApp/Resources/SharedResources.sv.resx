@@ -195,6 +195,9 @@
   <data name="CreateNewTenant" xml:space="preserve">
     <value>Skapa ny hyresgäst</value>
   </data>
+  <data name="HasData" xml:space="preserve">
+    <value>Har data</value>
+  </data>
   
   <!-- Sites -->
   <data name="SiteName" xml:space="preserve">

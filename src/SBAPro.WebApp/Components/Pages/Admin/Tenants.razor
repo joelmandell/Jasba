@@ -56,6 +56,21 @@
     </div>
 }
 
+@if (!string.IsNullOrEmpty(errorMessage) && !showCreateForm)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+    </div>
+}
+@if (!string.IsNullOrEmpty(successMessage) && !showCreateForm)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @successMessage
+        <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+    </div>
+}
+
 @if (tenants != null)
 {
     <table class="table table-striped">
@@ -65,16 +80,30 @@
                 <th>@Localizer["ID"]</th>
                 <th>@Localizer["Users"]</th>
                 <th>@Localizer["Sites"]</th>
+                <th>@Localizer["Actions"]</th>
             </tr>
         </thead>
         <tbody>
             @foreach (var tenant in tenants)
             {
+                var canDelete = tenant.Sites.Count == 0 && tenant.InspectionObjectTypes.Count == 0;
                 <tr>
                     <td>@tenant.Name</td>
                     <td><small>@tenant.Id</small></td>
                     <td>@tenant.Users.Count</td>
                     <td>@tenant.Sites.Count</td>
+                    <td>
+                        @if (canDelete)
+                        {
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteTenant(tenant)">
+                                @Localizer["Delete"]
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-muted small">@Localizer["HasData"]</span>
+                        }
+                    </td>
                 </tr>
             }
         </tbody>
@@ -100,7 +129,66 @@
             .IgnoreQueryFilters()
             .Include(t => t.Users)
             .Include(t => t.Sites)
+            .Include(t => t.InspectionObjectTypes)
             .ToListAsync();
+    }
+
+    private async Task DeleteTenant(Tenant tenant)
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            
+            // Re-fetch the tenant with all related data to ensure we can delete it
+            var tenantToDelete = await context.Tenants
+                .IgnoreQueryFilters()
+                .Include(t => t.Users)
+                .Include(t => t.Sites)
+                .Include(t => t.InspectionObjectTypes)
+                .FirstOrDefaultAsync(t => t.Id == tenant.Id);
+
+            if (tenantToDelete == null)
+            {
+                errorMessage = "Tenant not found.";
+                return;
+            }
+
+            // Check if tenant has any sites or custom object types
+            if (tenantToDelete.Sites.Any() || tenantToDelete.InspectionObjectTypes.Any())
+            {
+                errorMessage = "Cannot delete tenant with existing sites or inspection object types. Please delete them first.";
+                return;
+            }
+
+            // Delete all users associated with this tenant
+            if (tenantToDelete.Users.Any())
+            {
+                foreach (var user in tenantToDelete.Users.ToList())
+                {
+                    var deleteResult = await UserManager.DeleteAsync(user);
+                    if (!deleteResult.Succeeded)
+                    {
+                        errorMessage = $"Failed to delete user {user.Email}: {string.Join(", ", deleteResult.Errors.Select(e => e.Description))}";
+                        return;
+                    }
+                }
+            }
+
+            // Delete the tenant
+            context.Tenants.Remove(tenantToDelete);
+            await context.SaveChangesAsync();
+
+            successMessage = $"Tenant '{tenantToDelete.Name}' and {tenantToDelete.Users.Count} user(s) deleted successfully.";
+            await LoadTenants();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error deleting tenant: {ex.Message}";
+            Console.WriteLine($"Exception deleting tenant: {ex}");
+        }
     }
 
     private void ShowCreateForm()
