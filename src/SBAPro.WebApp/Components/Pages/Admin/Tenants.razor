@@ -226,9 +226,63 @@
         
         try
         {
+            // Validate input first
+            if (string.IsNullOrWhiteSpace(newTenant.Name))
+            {
+                errorMessage = "Tenant name is required.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(newTenant.AdminEmail))
+            {
+                errorMessage = "Admin email is required.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(newTenant.AdminPassword))
+            {
+                errorMessage = "Admin password is required.";
+                return;
+            }
+
+            // Check if tenant with same name already exists
+            using (var context = await DbFactory.CreateDbContextAsync())
+            {
+                var existingTenant = await context.Tenants
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(t => t.Name == newTenant.Name);
+                
+                if (existingTenant != null)
+                {
+                    errorMessage = $"A tenant with the name '{newTenant.Name}' already exists.";
+                    return;
+                }
+            }
+
+            // Validate password against Identity requirements BEFORE creating tenant
+            var tempUser = new ApplicationUser
+            {
+                UserName = newTenant.AdminEmail,
+                Email = newTenant.AdminEmail
+            };
+
+            var passwordValidation = await UserManager.PasswordValidators[0].ValidateAsync(UserManager, tempUser, newTenant.AdminPassword);
+            if (!passwordValidation.Succeeded)
+            {
+                errorMessage = "Password validation failed: " + string.Join(", ", passwordValidation.Errors.Select(e => e.Description));
+                return;
+            }
+
+            // Check if user with same email already exists
+            var existingUser = await UserManager.FindByEmailAsync(newTenant.AdminEmail);
+            if (existingUser != null)
+            {
+                errorMessage = $"A user with email '{newTenant.AdminEmail}' already exists.";
+                return;
+            }
+
+            // Now create the tenant (only after all validations pass)
             Tenant tenant;
-            
-            // First, create the tenant
             using (var context = await DbFactory.CreateDbContextAsync())
             {
                 tenant = new Tenant
@@ -241,8 +295,7 @@
                 await context.SaveChangesAsync();
             }
 
-            // Then, create the tenant admin user in a separate transaction
-            // This ensures the tenant is fully committed before creating the user
+            // Then, create the tenant admin user
             var adminUser = new ApplicationUser
             {
                 UserName = newTenant.AdminEmail,
@@ -262,10 +315,22 @@
             }
             else
             {
-                // Show user creation errors
-                errorMessage = "Failed to create admin user: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                // If user creation fails after tenant is created, we should delete the tenant
+                using (var context = await DbFactory.CreateDbContextAsync())
+                {
+                    var tenantToDelete = await context.Tenants
+                        .IgnoreQueryFilters()
+                        .FirstOrDefaultAsync(t => t.Id == tenant.Id);
+                    
+                    if (tenantToDelete != null)
+                    {
+                        context.Tenants.Remove(tenantToDelete);
+                        await context.SaveChangesAsync();
+                    }
+                }
+
+                errorMessage = "Failed to create admin user (tenant rolled back): " + string.Join(", ", result.Errors.Select(e => e.Description));
                 
-                // Also log to console for debugging
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine($"Error creating user: {error.Code} - {error.Description}");

@@ -79,6 +79,18 @@
         {
             NavigationManager.NavigateTo(ReturnUrl ?? "/", true);
         }
+        else if (result.RequiresTwoFactor)
+        {
+            errorMessage = "Two-factor authentication required.";
+        }
+        else if (result.IsLockedOut)
+        {
+            errorMessage = "Account is locked out.";
+        }
+        else if (result.IsNotAllowed)
+        {
+            errorMessage = "Sign-in not allowed. Email confirmation may be required.";
+        }
         else
         {
             errorMessage = Localizer["InvalidEmailOrPassword"];
