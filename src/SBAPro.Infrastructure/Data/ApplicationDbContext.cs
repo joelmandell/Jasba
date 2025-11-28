@@ -23,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InspectionRound> InspectionRounds => Set<InspectionRound>();
     public DbSet<InspectionResult> InspectionResults => Set<InspectionResult>();
     public DbSet<InspectionPhoto> InspectionPhotos => Set<InspectionPhoto>();
+    public DbSet<SecurityPlan> SecurityPlans => Set<SecurityPlan>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -34,6 +35,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             // Direct tenant filtering - evaluate tenant ID at query time, not model creation time
             builder.Entity<Site>().HasQueryFilter(s => s.TenantId == _tenantService.GetTenantId());
             builder.Entity<InspectionObjectType>().HasQueryFilter(iot => iot.TenantId == _tenantService.GetTenantId());
+            builder.Entity<SecurityPlan>().HasQueryFilter(sp => sp.TenantId == _tenantService.GetTenantId());
             
             // Indirect tenant filtering through relationships
             builder.Entity<FloorPlan>().HasQueryFilter(fp => fp.Site.TenantId == _tenantService.GetTenantId());
@@ -60,6 +62,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasMany(t => t.InspectionObjectTypes)
             .WithOne(iot => iot.Tenant)
             .HasForeignKey(iot => iot.TenantId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Tenant>()
+            .HasMany(t => t.SecurityPlans)
+            .WithOne(sp => sp.Tenant)
+            .HasForeignKey(sp => sp.TenantId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.Entity<Site>()

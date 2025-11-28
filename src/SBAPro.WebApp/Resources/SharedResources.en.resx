@@ -144,6 +144,54 @@
   <data name="InspectionObjectTypes" xml:space="preserve">
     <value>Inspection Object Types</value>
   </data>
+  <data name="SecurityPlans" xml:space="preserve">
+    <value>Security Plans</value>
+  </data>
+  <data name="CreateSecurityPlan" xml:space="preserve">
+    <value>Create Security Plan</value>
+  </data>
+  <data name="EditSecurityPlan" xml:space="preserve">
+    <value>Edit Security Plan</value>
+  </data>
+  <data name="NoSecurityPlansFound" xml:space="preserve">
+    <value>No security plans found. Create your first security plan guideline.</value>
+  </data>
+  <data name="ActivePlan" xml:space="preserve">
+    <value>Active Plan</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Last Updated</value>
+  </data>
+  <data name="CreatedAt" xml:space="preserve">
+    <value>Created At</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>View</value>
+  </data>
+  <data name="EnterTitle" xml:space="preserve">
+    <value>Enter title</value>
+  </data>
+  <data name="EnterDescription" xml:space="preserve">
+    <value>Enter description</value>
+  </data>
+  <data name="TitleRequired" xml:space="preserve">
+    <value>Title is required</value>
+  </data>
+  <data name="ContentRequired" xml:space="preserve">
+    <value>Content is required</value>
+  </data>
+  <data name="SaveFailed" xml:space="preserve">
+    <value>Save failed</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Are you sure you want to delete</value>
+  </data>
   
   <!-- Inspector -->
   <data name="InspectionRounds" xml:space="preserve">

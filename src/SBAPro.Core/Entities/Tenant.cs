@@ -35,4 +35,5 @@ public class Tenant
     public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
     public ICollection<Site> Sites { get; set; } = new List<Site>();
     public ICollection<InspectionObjectType> InspectionObjectTypes { get; set; } = new List<InspectionObjectType>();
+    public ICollection<SecurityPlan> SecurityPlans { get; set; } = new List<SecurityPlan>();
 }

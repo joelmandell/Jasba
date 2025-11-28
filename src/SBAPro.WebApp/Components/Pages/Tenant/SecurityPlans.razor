@@ -1,0 +1,381 @@
+@page "/tenant/security-plans"
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using SBAPro.Core.Entities
+@using SBAPro.Core.Interfaces
+@using SBAPro.Infrastructure.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "TenantAdmin,SystemAdmin")]
+@rendermode InteractiveServer
+@inject IStringLocalizer<SharedResources> Localizer
+@inject IDbContextFactory<ApplicationDbContext> DbFactory
+@inject ITenantService TenantService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+
+<PageTitle>@Localizer["SecurityPlans"]</PageTitle>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>@Localizer["SecurityPlans"]</h1>
+        <button class="btn btn-primary" @onclick="CreateNewPlan">
+            <i class="bi bi-plus-circle"></i> @Localizer["CreateSecurityPlan"]
+        </button>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">@Localizer["Loading"]...</span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (securityPlans.Any())
+        {
+            <div class="row">
+                @foreach (var plan in securityPlans)
+                {
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title">@plan.Title</h5>
+                                    <span class="badge @(plan.IsActive ? "bg-success" : "bg-secondary")">
+                                        @(plan.IsActive ? Localizer["Active"] : Localizer["Inactive"])
+                                    </span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(plan.Description))
+                                {
+                                    <p class="card-text text-muted">@plan.Description</p>
+                                }
+                                <p class="card-text small text-muted">
+                                    @Localizer["LastUpdated"]: @plan.UpdatedAt.ToString("g")
+                                </p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => EditPlan(plan.Id)">
+                                    <i class="bi bi-pencil"></i> @Localizer["Edit"]
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" @onclick="() => ViewPlan(plan.Id)">
+                                    <i class="bi bi-eye"></i> @Localizer["View"]
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePlan(plan)">
+                                    <i class="bi bi-trash"></i> @Localizer["Delete"]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> @Localizer["NoSecurityPlansFound"]
+            </div>
+        }
+    }
+</div>
+
+@if (showEditor)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(editingPlanId == null ? Localizer["CreateSecurityPlan"] : Localizer["EditSecurityPlan"])</h5>
+                    <button type="button" class="btn-close" @onclick="CloseEditor"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="planTitle" class="form-label">@Localizer["Title"] *</label>
+                        <input type="text" class="form-control" id="planTitle" @bind="currentTitle" placeholder="@Localizer["EnterTitle"]" />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="planDescription" class="form-label">@Localizer["Description"] (@Localizer["Optional"])</label>
+                        <textarea class="form-control" id="planDescription" rows="2" @bind="currentDescription" placeholder="@Localizer["EnterDescription"]"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">@Localizer["Content"] *</label>
+                        <div id="editor-container" style="height: 400px; background: white;"></div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="isActive" @bind="currentIsActive" />
+                        <label class="form-check-label" for="isActive">
+                            @Localizer["ActivePlan"]
+                        </label>
+                    </div>
+                    
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger">@errorMessage</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseEditor">@Localizer["Cancel"]</button>
+                    <button type="button" class="btn btn-primary" @onclick="SavePlan" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        @Localizer["Save"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showViewer)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@viewingPlan?.Title</h5>
+                    <button type="button" class="btn-close" @onclick="CloseViewer"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(viewingPlan?.Description))
+                    {
+                        <div class="alert alert-info">
+                            <strong>@Localizer["Description"]:</strong> @viewingPlan.Description
+                        </div>
+                    }
+                    <div class="security-plan-content">
+                        @((MarkupString)(viewingPlan?.Content ?? ""))
+                    </div>
+                    <hr />
+                    <div class="text-muted small">
+                        <p>@Localizer["CreatedAt"]: @viewingPlan?.CreatedAt.ToString("g")</p>
+                        <p>@Localizer["LastUpdated"]: @viewingPlan?.UpdatedAt.ToString("g")</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseViewer">@Localizer["Close"]</button>
+                    <button type="button" class="btn btn-primary" @onclick="() => { CloseViewer(); EditPlan(viewingPlan!.Id); }">
+                        <i class="bi bi-pencil"></i> @Localizer["Edit"]
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<SecurityPlan> securityPlans = new();
+    private bool isLoading = true;
+    private bool showEditor = false;
+    private bool showViewer = false;
+    private bool isSaving = false;
+    private Guid? editingPlanId = null;
+    private string currentTitle = string.Empty;
+    private string currentDescription = string.Empty;
+    private bool currentIsActive = true;
+    private string? errorMessage = null;
+    private SecurityPlan? viewingPlan = null;
+    private bool editorInitialized = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSecurityPlans();
+    }
+
+    private async Task LoadSecurityPlans()
+    {
+        isLoading = true;
+        try
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            securityPlans = await context.SecurityPlans
+                .OrderByDescending(sp => sp.UpdatedAt)
+                .ToListAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CreateNewPlan()
+    {
+        editingPlanId = null;
+        currentTitle = string.Empty;
+        currentDescription = string.Empty;
+        currentIsActive = true;
+        errorMessage = null;
+        showEditor = true;
+        editorInitialized = false;
+        
+        StateHasChanged();
+        await Task.Delay(100); // Wait for DOM to render
+        await InitializeEditor("");
+    }
+
+    private async Task EditPlan(Guid planId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        var plan = await context.SecurityPlans.FindAsync(planId);
+        
+        if (plan != null)
+        {
+            editingPlanId = plan.Id;
+            currentTitle = plan.Title;
+            currentDescription = plan.Description ?? string.Empty;
+            currentIsActive = plan.IsActive;
+            errorMessage = null;
+            showEditor = true;
+            editorInitialized = false;
+            
+            StateHasChanged();
+            await Task.Delay(100); // Wait for DOM to render
+            await InitializeEditor(plan.Content);
+        }
+    }
+
+    private async Task ViewPlan(Guid planId)
+    {
+        using var context = await DbFactory.CreateDbContextAsync();
+        viewingPlan = await context.SecurityPlans.FindAsync(planId);
+        showViewer = true;
+    }
+
+    private void CloseViewer()
+    {
+        showViewer = false;
+        viewingPlan = null;
+    }
+
+    private async Task InitializeEditor(string content)
+    {
+        if (!editorInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("initQuillEditor", content);
+                editorInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing editor: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task SavePlan()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(currentTitle))
+        {
+            errorMessage = Localizer["TitleRequired"];
+            return;
+        }
+
+        isSaving = true;
+        try
+        {
+            // Get content from Quill editor
+            var content = await JSRuntime.InvokeAsync<string>("getQuillContent");
+            
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                errorMessage = Localizer["ContentRequired"];
+                return;
+            }
+
+            using var context = await DbFactory.CreateDbContextAsync();
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userName = authState.User.Identity?.Name ?? "Unknown";
+
+            if (editingPlanId.HasValue)
+            {
+                var plan = await context.SecurityPlans.FindAsync(editingPlanId.Value);
+                if (plan != null)
+                {
+                    plan.Title = currentTitle;
+                    plan.Description = string.IsNullOrWhiteSpace(currentDescription) ? null : currentDescription;
+                    plan.Content = content;
+                    plan.IsActive = currentIsActive;
+                    plan.UpdatedAt = DateTime.UtcNow;
+                    plan.UpdatedBy = userName;
+                    
+                    context.SecurityPlans.Update(plan);
+                }
+            }
+            else
+            {
+                var newPlan = new SecurityPlan
+                {
+                    Id = Guid.NewGuid(),
+                    Title = currentTitle,
+                    Description = string.IsNullOrWhiteSpace(currentDescription) ? null : currentDescription,
+                    Content = content,
+                    IsActive = currentIsActive,
+                    TenantId = TenantService.GetTenantId(),
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = userName,
+                    UpdatedBy = userName
+                };
+                
+                context.SecurityPlans.Add(newPlan);
+            }
+
+            await context.SaveChangesAsync();
+            await CloseEditor();
+            await LoadSecurityPlans();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"{Localizer["SaveFailed"]}: {ex.Message}";
+            Console.WriteLine($"Error saving security plan: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private async Task CloseEditor()
+    {
+        if (editorInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("destroyQuillEditor");
+            }
+            catch { }
+        }
+        
+        showEditor = false;
+        editingPlanId = null;
+        currentTitle = string.Empty;
+        currentDescription = string.Empty;
+        currentIsActive = true;
+        errorMessage = null;
+        editorInitialized = false;
+    }
+
+    private async Task DeletePlan(SecurityPlan plan)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"{Localizer["ConfirmDelete"]} '{plan.Title}'?");
+        
+        if (confirmed)
+        {
+            using var context = await DbFactory.CreateDbContextAsync();
+            context.SecurityPlans.Remove(plan);
+            await context.SaveChangesAsync();
+            await LoadSecurityPlans();
+        }
+    }
+}

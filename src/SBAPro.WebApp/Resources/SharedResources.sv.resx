@@ -144,6 +144,54 @@
   <data name="InspectionObjectTypes" xml:space="preserve">
     <value>Inspektionsobjekttyper</value>
   </data>
+  <data name="SecurityPlans" xml:space="preserve">
+    <value>Säkerhetsplaner</value>
+  </data>
+  <data name="CreateSecurityPlan" xml:space="preserve">
+    <value>Skapa säkerhetsplan</value>
+  </data>
+  <data name="EditSecurityPlan" xml:space="preserve">
+    <value>Redigera säkerhetsplan</value>
+  </data>
+  <data name="NoSecurityPlansFound" xml:space="preserve">
+    <value>Inga säkerhetsplaner hittades. Skapa din första säkerhetsplan.</value>
+  </data>
+  <data name="ActivePlan" xml:space="preserve">
+    <value>Aktiv plan</value>
+  </data>
+  <data name="Active" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inaktiv</value>
+  </data>
+  <data name="LastUpdated" xml:space="preserve">
+    <value>Senast uppdaterad</value>
+  </data>
+  <data name="CreatedAt" xml:space="preserve">
+    <value>Skapad den</value>
+  </data>
+  <data name="View" xml:space="preserve">
+    <value>Visa</value>
+  </data>
+  <data name="EnterTitle" xml:space="preserve">
+    <value>Ange titel</value>
+  </data>
+  <data name="EnterDescription" xml:space="preserve">
+    <value>Ange beskrivning</value>
+  </data>
+  <data name="TitleRequired" xml:space="preserve">
+    <value>Titel krävs</value>
+  </data>
+  <data name="ContentRequired" xml:space="preserve">
+    <value>Innehåll krävs</value>
+  </data>
+  <data name="SaveFailed" xml:space="preserve">
+    <value>Spara misslyckades</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Är du säker på att du vill ta bort</value>
+  </data>
   
   <!-- Inspector -->
   <data name="InspectionRounds" xml:space="preserve">
