@@ -671,6 +671,9 @@
   <data name="PhotoRemoved" xml:space="preserve">
     <value>Foto borttaget</value>
   </data>
+  <data name="TakePhoto" xml:space="preserve">
+    <value>Ta foto / Ladda upp</value>
+  </data>
   <data name="PhotoTooLarge" xml:space="preserve">
     <value>Fotot är för stort (max 5MB)</value>
   </data>

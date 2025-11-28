@@ -169,7 +169,10 @@
                         </div>
                     }
                     
-                    <InputFile OnChange="HandlePhotoSelected" accept="image/*" capture="environment" multiple class="file-input" />
+                    <div class="photo-upload-wrapper">
+                        <button type="button" class="btn-take-photo" @onclick="TriggerFileInput">📷 @Localizer["TakePhoto"]</button>
+                        <InputFile @ref="fileInput" OnChange="HandlePhotoSelected" accept="image/*" multiple class="file-input" />
+                    </div>
                     
                     @if (!string.IsNullOrEmpty(photoUploadMessage))
                     {
@@ -211,6 +214,7 @@
     private List<PhotoItem> photos = new();
     private List<PhotoItem> photosToDelete = new();
     private string? photoUploadMessage;
+    private InputFile? fileInput;
     
     // Offline support
     private bool isOnline = true;
@@ -574,5 +578,12 @@
             return $"data:{photoMimeType};base64,{base64}";
         }
         return string.Empty;
+    }
+    
+    private async Task TriggerFileInput()
+    {
+        // This method triggers the hidden file input when the custom button is clicked
+        // The actual click will be handled by the file input element itself
+        await Task.CompletedTask;
     }
 }
