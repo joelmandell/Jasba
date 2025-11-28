@@ -198,6 +198,12 @@
   <data name="HasData" xml:space="preserve">
     <value>Has data</value>
   </data>
+  <data name="EditTenant" xml:space="preserve">
+    <value>Edit Tenant</value>
+  </data>
+  <data name="CannotBeChanged" xml:space="preserve">
+    <value>Cannot be changed</value>
+  </data>
   
   <!-- Sites -->
   <data name="SiteName" xml:space="preserve">

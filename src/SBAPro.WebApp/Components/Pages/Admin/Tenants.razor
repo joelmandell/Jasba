@@ -56,6 +56,40 @@
     </div>
 }
 
+@if (showEditForm && editTenant != null)
+{
+    <div class="card mb-3">
+        <div class="card-header">@Localizer["EditTenant"]</div>
+        <div class="card-body">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success">
+                    @successMessage
+                </div>
+            }
+            <EditForm Model="editTenant" OnValidSubmit="UpdateTenant">
+                <div class="mb-3">
+                    <label class="form-label">@Localizer["TenantName"]</label>
+                    <InputText class="form-control" @bind-Value="editTenant.Name" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">@Localizer["ID"]</label>
+                    <input class="form-control" value="@editTenant.Id" disabled />
+                    <small class="text-muted">@Localizer["CannotBeChanged"]</small>
+                </div>
+                <button type="submit" class="btn btn-success">@Localizer["Save"]</button>
+                <button type="button" class="btn btn-secondary" @onclick="CancelEdit">@Localizer["Cancel"]</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
 @if (!string.IsNullOrEmpty(errorMessage) && !showCreateForm)
 {
     <div class="alert alert-danger alert-dismissible fade show">
@@ -93,6 +127,9 @@
                     <td>@tenant.Users.Count</td>
                     <td>@tenant.Sites.Count</td>
                     <td>
+                        <button class="btn btn-sm btn-primary me-2" @onclick="() => ShowEditForm(tenant)">
+                            @Localizer["Edit"]
+                        </button>
                         @if (canDelete)
                         {
                             <button class="btn btn-sm btn-danger" @onclick="() => DeleteTenant(tenant)">
@@ -113,7 +150,9 @@
 @code {
     private List<Tenant>? tenants;
     private bool showCreateForm = false;
+    private bool showEditForm = false;
     private CreateTenantModel newTenant = new();
+    private EditTenantModel? editTenant;
     private string errorMessage = string.Empty;
     private string successMessage = string.Empty;
 
@@ -213,10 +252,90 @@
     private void ShowCreateForm()
     {
         showCreateForm = true;
+        showEditForm = false;
         newTenant = new CreateTenantModel();
         errorMessage = string.Empty;
         successMessage = string.Empty;
         StateHasChanged();
+    }
+
+    private void ShowEditForm(Tenant tenant)
+    {
+        showEditForm = true;
+        showCreateForm = false;
+        editTenant = new EditTenantModel
+        {
+            Id = tenant.Id,
+            Name = tenant.Name
+        };
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private void CancelEdit()
+    {
+        showEditForm = false;
+        editTenant = null;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private async Task UpdateTenant()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        if (editTenant == null) return;
+
+        try
+        {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(editTenant.Name))
+            {
+                errorMessage = "Tenant name is required.";
+                return;
+            }
+
+            using var context = await DbFactory.CreateDbContextAsync();
+
+            // Check if another tenant with same name exists (excluding current tenant)
+            var existingTenant = await context.Tenants
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(t => t.Name == editTenant.Name && t.Id != editTenant.Id);
+
+            if (existingTenant != null)
+            {
+                errorMessage = $"A tenant with the name '{editTenant.Name}' already exists.";
+                return;
+            }
+
+            // Get the tenant to update
+            var tenantToUpdate = await context.Tenants
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(t => t.Id == editTenant.Id);
+
+            if (tenantToUpdate == null)
+            {
+                errorMessage = "Tenant not found.";
+                return;
+            }
+
+            // Update tenant
+            tenantToUpdate.Name = editTenant.Name;
+            await context.SaveChangesAsync();
+
+            successMessage = $"Tenant '{tenantToUpdate.Name}' updated successfully!";
+            await Task.Delay(2000);
+            showEditForm = false;
+            await LoadTenants();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error updating tenant: {ex.Message}";
+            Console.WriteLine($"Exception updating tenant: {ex}");
+        }
     }
 
     private async Task CreateTenant()
@@ -349,5 +468,11 @@
         public string Name { get; set; } = string.Empty;
         public string AdminEmail { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
+    }
+
+    public class EditTenantModel
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

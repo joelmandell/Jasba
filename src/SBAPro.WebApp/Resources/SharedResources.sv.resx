@@ -198,6 +198,12 @@
   <data name="HasData" xml:space="preserve">
     <value>Har data</value>
   </data>
+  <data name="EditTenant" xml:space="preserve">
+    <value>Redigera hyresgäst</value>
+  </data>
+  <data name="CannotBeChanged" xml:space="preserve">
+    <value>Kan inte ändras</value>
+  </data>
   
   <!-- Sites -->
   <data name="SiteName" xml:space="preserve">
